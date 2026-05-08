@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: flowledger
+    runtime: python
+    buildCommand: echo "No build step needed"
+    startCommand: python3 server.py
+    plan: free
+    envVars:
+      - key: PORT
+        generateValue: false
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1

@@ -2,6 +2,15 @@
 
 A simple invoicing and bookkeeping tool for Nigerian businesses. Generate invoices and quotes, track payments, manage your ledger, and generate financial reports — all with Nigerian VAT (7.5%) built in.
 
+## Deploy to Render (free)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tbabsjonah/naija-invoice-)
+
+1. Click the button above (or go to [render.com](https://render.com) and create a new Web Service from your GitHub repo)
+2. Render will auto-detect the `render.yaml` config
+3. Click **Deploy** — your live URL will appear once it's ready (about 2 minutes)
+4. Open the URL, create your account, and start invoicing
+
 ## Features
 
 - **Invoices & Quotes** — create professional invoices for completed work or quotations for proposed work

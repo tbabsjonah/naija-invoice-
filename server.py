@@ -10,8 +10,10 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 PORT = int(os.environ.get("PORT", 8080))
-DB_PATH  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flowledger.db")
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+# On Render (and similar), use /data for persistent storage; otherwise use local dir
+_DATA_DIR = "/data" if os.path.isdir("/data") else os.path.dirname(os.path.abspath(__file__))
+DB_PATH  = os.path.join(_DATA_DIR, "flowledger.db")
+UPLOAD_DIR = os.path.join(_DATA_DIR, "uploads")
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(STATIC_DIR, exist_ok=True)
