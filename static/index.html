@@ -125,6 +125,7 @@ tr:hover td{background:var(--gray-50)}
 /* ── Badges ────────────────────────────────────────── */
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .badge-draft{background:var(--gray-100);color:var(--gray-600)}
+.badge-confirmed{background:#fef3c7;color:#92400e}
 .badge-sent{background:#dbeafe;color:var(--blue)}
 .badge-paid{background:var(--green-light);color:var(--green)}
 .badge-overdue{background:#fef2f2;color:var(--red)}
@@ -505,7 +506,8 @@ async function renderInvoicesList(type){
   data.forEach(function(inv){
     var acts='<button class="btn btn-sm btn-secondary" onclick="viewInvoice(\''+inv.id+'\')">View</button>'
       +'<button class="btn btn-sm btn-secondary" onclick="downloadPDF(\''+inv.id+'\')">PDF</button>';
-    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-primary" onclick="sendInvoice(\''+inv.id+'\')">Send</button>';
+    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="updateStatus(\''+inv.id+'\',\'confirmed\')">Confirm</button>';
+    if(inv.status==='draft'||inv.status==='confirmed') acts+='<button class="btn btn-sm btn-primary" onclick="sendInvoice(\''+inv.id+'\')">Send</button>';
     if(inv.status==='sent'||inv.status==='overdue') acts+='<button class="btn btn-sm btn-secondary" onclick="sendReminder(\''+inv.id+'\')">Remind</button>';
     var payBadge = inv.payment_method ? ' <span class="badge badge-'+inv.payment_method+'">'+fmtPayMethod(inv.payment_method)+'</span>' : '';
     rows+='<tr><td><strong>'+inv.invoice_number+'</strong></td><td>'+inv.client_name+'</td>'
@@ -738,13 +740,15 @@ async function viewInvoice(id){
   var label=inv.type==='invoice'?'Invoice':'Quote';
   var acts='';
   if(inv.type==='invoice'){
+    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="updateStatus(\''+id+'\',\'confirmed\')">Confirm</button>';
     if(inv.status!=='paid') acts+='<button class="btn btn-sm btn-primary" onclick="openPaymentModal(\''+id+'\')">Mark Paid</button>';
-    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\''+id+'\')">Send</button>';
+    if(inv.status==='draft'||inv.status==='confirmed') acts+='<button class="btn btn-sm btn-primary" onclick="sendInvoice(\''+id+'\')">Send</button>';
     if(inv.status==='sent'||inv.status==='overdue') acts+='<button class="btn btn-sm btn-secondary" onclick="sendReminder(\''+id+'\')">Remind</button>';
   } else {
+    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="updateStatus(\''+id+'\',\'confirmed\')">Confirm</button>';
     if(inv.status!=='accepted') acts+='<button class="btn btn-sm btn-primary" onclick="updateStatus(\''+id+'\',\'accepted\')">Mark Accepted</button>';
     if(inv.status!=='declined') acts+='<button class="btn btn-sm btn-danger" onclick="updateStatus(\''+id+'\',\'declined\')">Mark Declined</button>';
-    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\''+id+'\')">Send</button>';
+    if(inv.status==='draft'||inv.status==='confirmed') acts+='<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\''+id+'\')">Send</button>';
   }
   var payInfo='';
   if(inv.payment_method) payInfo='<span class="badge badge-'+inv.payment_method+'">'+fmtPayMethod(inv.payment_method)+'</span>'+(inv.payment_date?' <span style="font-size:12px;color:var(--gray-500);">'+inv.payment_date+'</span>':'');
