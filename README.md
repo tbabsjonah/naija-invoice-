@@ -1,6 +1,6 @@
-# Naija Invoice
+# FlowLedger
 
-A simple invoicing tool for Nigerian businesses. Generate invoices and quotes, send them via email, and set up automated payment reminders — all with Nigerian VAT (7.5%) built in.
+A simple invoicing and bookkeeping tool for Nigerian businesses. Generate invoices and quotes, track payments, manage your ledger, and generate financial reports — all with Nigerian VAT (7.5%) built in.
 
 ## Features
 
@@ -8,10 +8,14 @@ A simple invoicing tool for Nigerian businesses. Generate invoices and quotes, s
 - **Nigerian VAT (7.5%)** — automatically calculated per FIRS tax law
 - **Email Sending** — send invoices directly to clients with the invoice attached
 - **Payment Reminders** — automated or manual reminders with configurable frequency (3, 7, 14, 30 days or custom)
+- **Payment Tracking** — record how payments were made (cash, bank transfer, or cheque) with date
+- **Client Ledger** — per-client bookkeeping showing total invoiced, paid, and pending amounts
+- **Financial Reports** — Profit & Loss, Balance Sheet, Cash Flow, and Tax (VAT) reports with date filtering
 - **Company Branding** — upload your company logo (click or drag-and-drop)
 - **Client Management** — store and manage client details
 - **Bank Details** — display your payment info on invoices (bank name, account name, account number)
 - **Dashboard** — overview of invoices, quotes, paid and outstanding amounts
+- **PDF Download** — download any invoice as a PDF via browser print
 - **Zero Dependencies** — runs on Python 3 with no external packages needed
 
 ## Quick Start
@@ -53,16 +57,10 @@ To send invoices via email using Gmail:
 1. **Add Clients** — go to Clients and add your customer details
 2. **Create Invoice/Quote** — select a client, add line items, VAT is auto-calculated
 3. **Send** — email the invoice to the client with one click
-4. **Track** — monitor payment status (draft, sent, paid, overdue)
+4. **Track** — monitor payment status (draft, sent, paid, overdue) and record payment method
 5. **Remind** — send manual reminders or enable auto-reminders
-
-## Screenshots
-
-### Dashboard
-The dashboard shows your invoice and quote totals, paid and outstanding amounts, and recent activity.
-
-### Invoice Preview
-Professional invoice layout with your company logo, client details, itemized services, VAT breakdown, and bank payment info.
+6. **Ledger** — view per-client bookkeeping with totals for invoiced, paid, and pending
+7. **Reports** — generate P&L, balance sheet, cash flow, and VAT tax reports
 
 ## Tech Stack
 

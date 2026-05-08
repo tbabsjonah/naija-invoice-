@@ -1,6 +1,9 @@
 invoices.db
 invoices.db-shm
 invoices.db-wal
+flowledger.db
+flowledger.db-shm
+flowledger.db-wal
 uploads/
 __pycache__/
 *.pyc
