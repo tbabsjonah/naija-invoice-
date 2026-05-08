@@ -411,6 +411,7 @@ async function renderInvoicesList(type) {
                     <td>
                         <div class="flex gap-2">
                             <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${inv.id}')">View</button>
+                            <button class="btn btn-sm btn-secondary" onclick="downloadPDF('${inv.id}')">PDF</button>
                             ${inv.status === 'draft' ? `<button class="btn btn-sm btn-primary" onclick="sendInvoice('${inv.id}')">Send</button>` : ''}
                             ${['sent','overdue'].includes(inv.status) ? `<button class="btn btn-sm btn-secondary" onclick="sendReminder('${inv.id}')">Remind</button>` : ''}
                         </div>
@@ -508,6 +509,8 @@ async function openInvoiceForm(type, editId) {
         return;
     }
 
+    settings = await api('/api/settings');
+
     let inv = null, items = [{ description: '', quantity: 1, unit_price: 0 }];
     if (editId) {
         inv = await api(`/api/invoices/${editId}`);
@@ -518,7 +521,25 @@ async function openInvoiceForm(type, editId) {
     const due = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
     const label = type === 'invoice' ? 'Invoice' : 'Quote';
 
+    const logoSrc = settings.company_logo ? `/uploads/${settings.company_logo}` : '';
+    const companyName = settings.company_name || '';
+    const brandingHtml = (logoSrc || companyName) ? `
+        <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200);margin-bottom:20px;">
+            ${logoSrc ? `<img src="${logoSrc}" style="max-height:60px;max-width:150px;object-fit:contain;" />` : ''}
+            <div>
+                ${companyName ? `<h3 style="margin:0;font-size:18px;font-weight:700;color:var(--gray-900);">${companyName}</h3>` : ''}
+                ${settings.company_email ? `<p style="margin:2px 0 0;font-size:13px;color:var(--gray-500);">${settings.company_email}</p>` : ''}
+                ${settings.company_phone ? `<p style="margin:2px 0 0;font-size:13px;color:var(--gray-500);">${settings.company_phone}</p>` : ''}
+            </div>
+        </div>
+    ` : `
+        <div style="padding:12px 16px;background:#fefce8;border:1px solid #fde68a;border-radius:var(--radius);margin-bottom:20px;font-size:13px;color:#92400e;">
+            No company info set up yet. <a href="#" onclick="closeModal();navigate('settings');return false;" style="color:#92400e;font-weight:600;">Go to Settings</a> to add your logo and company name.
+        </div>
+    `;
+
     openModal(`${editId ? 'Edit' : 'New'} ${label}`, `
+        ${brandingHtml}
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Client *</label>
@@ -741,6 +762,7 @@ async function viewInvoice(id) {
             <span class="badge badge-${inv.status}">${inv.status}</span>
             ${statusActions}
             <button class="btn btn-sm btn-secondary" onclick="openInvoiceForm('${inv.type}','${id}')">Edit</button>
+            <button class="btn btn-sm btn-secondary" onclick="downloadPDF('${id}')">Download PDF</button>
             <button class="btn btn-sm btn-danger" onclick="deleteInvoice('${id}')">Delete</button>
         </div>
         <div class="tabs">
@@ -768,6 +790,21 @@ function switchViewTab(btn, tabId) {
     const parent = btn.closest('.modal-body');
     parent.querySelectorAll('[id$="-tab"]').forEach(t => t.style.display = 'none');
     parent.querySelector(`#${tabId}`).style.display = 'block';
+}
+
+function downloadPDF(id) {
+    const printWindow = window.open(`/api/invoices/${id}/preview`, '_blank');
+    printWindow.addEventListener('load', () => {
+        const style = printWindow.document.createElement('style');
+        style.textContent = `
+            @media print {
+                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+            @page { margin: 10mm; size: A4; }
+        `;
+        printWindow.document.head.appendChild(style);
+        setTimeout(() => printWindow.print(), 300);
+    });
 }
 
 async function sendInvoice(id) {
