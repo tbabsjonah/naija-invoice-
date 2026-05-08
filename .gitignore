@@ -1,0 +1,8 @@
+invoices.db
+invoices.db-shm
+invoices.db-wal
+uploads/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/

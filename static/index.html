@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naija Invoice</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --green: #16a34a; --green-light: #f0fdf4; --green-dark: #15803d;
+            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+            --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+            --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+            --gray-900: #111827;
+            --red: #dc2626; --blue: #2563eb; --yellow: #f59e0b;
+            --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        body { font-family: 'Segoe UI', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-800); }
+
+        /* Layout */
+        .app { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px; background: var(--gray-900); color: white; padding: 0;
+            position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100;
+        }
+        .sidebar-brand { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-brand h1 { font-size: 20px; font-weight: 700; color: white; }
+        .sidebar-brand span { font-size: 11px; color: var(--gray-400); display: block; margin-top: 2px; }
+        .sidebar-nav { padding: 12px 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px 24px; color: var(--gray-400);
+            cursor: pointer; font-size: 14px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left;
+        }
+        .nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-item.active { color: white; background: rgba(22,163,74,0.2); border-right: 3px solid var(--green); }
+        .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .nav-section { padding: 8px 24px 4px; font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+
+        .main { margin-left: 250px; flex: 1; padding: 0; }
+        .topbar {
+            background: white; border-bottom: 1px solid var(--gray-200); padding: 16px 32px;
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;
+        }
+        .topbar h2 { font-size: 20px; font-weight: 600; }
+        .content { padding: 24px 32px; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius);
+            font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s;
+        }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-primary:hover { background: var(--green-dark); }
+        .btn-secondary { background: white; color: var(--gray-700); border-color: var(--gray-300); }
+        .btn-secondary:hover { background: var(--gray-50); }
+        .btn-danger { background: var(--red); color: white; }
+        .btn-danger:hover { opacity: 0.9; }
+        .btn-sm { padding: 5px 10px; font-size: 13px; }
+        .btn-icon { padding: 6px 8px; }
+
+        /* Cards & Tables */
+        .card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); box-shadow: var(--shadow); }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { font-size: 16px; font-weight: 600; }
+        .card-body { padding: 20px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 10px 16px; text-align: left; font-size: 12px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); font-weight: 600; }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+        tr:hover td { background: var(--gray-50); }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius);
+            font-size: 14px; color: var(--gray-800); background: white; transition: border-color 0.15s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+        .form-textarea { min-height: 80px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+        /* Status badges */
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .badge-draft { background: var(--gray-100); color: var(--gray-600); }
+        .badge-sent { background: #dbeafe; color: var(--blue); }
+        .badge-paid { background: var(--green-light); color: var(--green); }
+        .badge-overdue { background: #fef2f2; color: var(--red); }
+        .badge-cancelled { background: var(--gray-100); color: var(--gray-400); }
+        .badge-accepted { background: var(--green-light); color: var(--green); }
+        .badge-declined { background: #fef2f2; color: var(--red); }
+
+        /* Dashboard stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); padding: 20px; box-shadow: var(--shadow); }
+        .stat-card .stat-label { font-size: 13px; color: var(--gray-500); margin-bottom: 4px; }
+        .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-900); }
+        .stat-card .stat-value.green { color: var(--green); }
+        .stat-card .stat-value.red { color: var(--red); }
+        .stat-card .stat-value.blue { color: var(--blue); }
+
+        /* Logo upload */
+        .logo-upload {
+            border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 30px; text-align: center;
+            cursor: pointer; transition: all 0.15s; background: var(--gray-50);
+        }
+        .logo-upload:hover { border-color: var(--green); background: var(--green-light); }
+        .logo-upload img { max-height: 80px; max-width: 200px; margin-bottom: 8px; }
+        .logo-upload p { color: var(--gray-500); font-size: 13px; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0;
+            pointer-events: none; transition: opacity 0.2s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: white; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh;
+            overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray-400); padding: 4px; }
+        .modal-close:hover { color: var(--gray-700); }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 8px; }
+
+        /* Invoice preview */
+        .preview-frame { width: 100%; height: 600px; border: 1px solid var(--gray-200); border-radius: var(--radius); }
+
+        /* Toast notifications */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            padding: 12px 20px; border-radius: var(--radius); color: white; font-size: 14px; font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease;
+        }
+        .toast-success { background: var(--green); }
+        .toast-error { background: var(--red); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--gray-200); margin-bottom: 20px; }
+        .tab {
+            padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); cursor: pointer;
+            border-bottom: 2px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none;
+        }
+        .tab:hover { color: var(--gray-700); }
+        .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+        /* Line items */
+        .line-items { margin: 16px 0; }
+        .line-item { display: grid; grid-template-columns: 1fr 100px 140px 140px 40px; gap: 8px; margin-bottom: 8px; align-items: start; }
+        .line-item-header { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; padding-bottom: 4px; }
+        .line-item .form-input { padding: 6px 10px; }
+        .remove-item { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 18px; padding: 6px; }
+        .remove-item:hover { color: var(--red); }
+
+        /* Totals section */
+        .totals { max-width: 350px; margin-left: auto; margin-top: 16px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+        .totals-row.total { border-top: 2px solid var(--gray-900); padding-top: 10px; margin-top: 6px; font-weight: 700; font-size: 16px; }
+
+        /* Reminder settings */
+        .reminder-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px; margin-top: 16px; }
+        .reminder-box h4 { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--gray-300); border-radius: 24px; transition: 0.2s;
+        }
+        .toggle-slider:before {
+            content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background: white; border-radius: 50%; transition: 0.2s;
+        }
+        .toggle input:checked + .toggle-slider { background: var(--green); }
+        .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-400); }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state p { font-size: 15px; margin-bottom: 16px; }
+
+        .clickable { cursor: pointer; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 16px; }
+        .mb-4 { margin-bottom: 16px; }
+        .flex { display: flex; }
+        .gap-2 { gap: 8px; }
+        .items-center { align-items: center; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar-brand h1, .sidebar-brand span, .nav-item span, .nav-section { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .main { margin-left: 60px; }
+            .content { padding: 16px; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .line-item { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1>Naija Invoice</h1>
+            <span>Nigerian Business Invoicing</span>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-page="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Dashboard</span>
+            </button>
+            <div class="nav-section">Documents</div>
+            <button class="nav-item" data-page="invoices">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Invoices</span>
+            </button>
+            <button class="nav-item" data-page="quotes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                <span>Quotes</span>
+            </button>
+            <div class="nav-section">Manage</div>
+            <button class="nav-item" data-page="clients">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Clients</span>
+            </button>
+            <button class="nav-item" data-page="settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Settings</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <h2 id="page-title">Dashboard</h2>
+            <div id="topbar-actions"></div>
+        </div>
+        <div class="content" id="page-content"></div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+        <div class="modal-header">
+            <h3 id="modal-title"></h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer" id="modal-footer"></div>
+    </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const API = '';
+const VAT_RATE = 7.5;
+
+let currentPage = 'dashboard';
+let clients = [];
+let invoices = [];
+let settings = {};
+
+// Utility
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return document.querySelectorAll(sel); }
+
+function formatNaira(amount) {
+    return '₦' + Number(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function toast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = msg;
+    $('#toast-container').appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+}
+
+async function api(path, opts = {}) {
+    const res = await fetch(API + path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', ...opts.headers },
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+    return res.json();
+}
+
+function openModal(title, bodyHtml, footerHtml = '') {
+    $('#modal-title').textContent = title;
+    $('#modal-body').innerHTML = bodyHtml;
+    $('#modal-footer').innerHTML = footerHtml;
+    $('#modal-overlay').classList.add('active');
+}
+
+function closeModal() {
+    $('#modal-overlay').classList.remove('active');
+}
+
+$('#modal-overlay').addEventListener('click', e => {
+    if (e.target === $('#modal-overlay')) closeModal();
+});
+
+// Navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => navigate(item.dataset.page));
+});
+
+function navigate(page) {
+    currentPage = page;
+    $$('.nav-item').forEach(n => n.classList.remove('active'));
+    $(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+    renderPage();
+}
+
+async function renderPage() {
+    switch (currentPage) {
+        case 'dashboard': await renderDashboard(); break;
+        case 'invoices': await renderInvoicesList('invoice'); break;
+        case 'quotes': await renderInvoicesList('quote'); break;
+        case 'clients': await renderClients(); break;
+        case 'settings': await renderSettings(); break;
+    }
+}
+
+// Dashboard
+async function renderDashboard() {
+    $('#page-title').textContent = 'Dashboard';
+    $('#topbar-actions').innerHTML = `
+        <div class="flex gap-2">
+            <button class="btn btn-primary" onclick="openInvoiceForm('invoice')">+ New Invoice</button>
+            <button class="btn btn-secondary" onclick="openInvoiceForm('quote')">+ New Quote</button>
+        </div>
+    `;
+    const data = await api('/api/dashboard');
+    $('#page-content').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Invoices</div>
+                <div class="stat-value">${data.total_invoices}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Quotes</div>
+                <div class="stat-value blue">${data.total_quotes}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Amount Paid</div>
+                <div class="stat-value green">${formatNaira(data.total_paid)}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Outstanding</div>
+                <div class="stat-value red">${formatNaira(data.total_outstanding)}</div>
+            </div>
+            ${data.overdue_count > 0 ? `<div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value red">${data.overdue_count}</div></div>` : ''}
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>Recent Activity</h3></div>
+            ${data.recent.length ? `<table>
+                <thead><tr><th>Number</th><th>Client</th><th>Type</th><th>Status</th><th class="text-right">Amount</th><th>Date</th></tr></thead>
+                <tbody>${data.recent.map(inv => `
+                    <tr class="clickable" onclick="viewInvoice('${inv.id}')">
+                        <td><strong>${inv.invoice_number}</strong></td>
+                        <td>${inv.client_name}</td>
+                        <td>${inv.type === 'invoice' ? 'Invoice' : 'Quote'}</td>
+                        <td><span class="badge badge-${inv.status}">${inv.status}</span></td>
+                        <td class="text-right">${formatNaira(inv.total)}</td>
+                        <td>${inv.issue_date}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>` : '<div class="empty-state"><p>No invoices yet. Create your first invoice to get started!</p></div>'}
+        </div>
+    `;
+}
+
+// Invoices / Quotes list
+async function renderInvoicesList(type) {
+    const label = type === 'invoice' ? 'Invoices' : 'Quotes';
+    $('#page-title').textContent = label;
+    $('#topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="openInvoiceForm('${type}')">+ New ${type === 'invoice' ? 'Invoice' : 'Quote'}</button>`;
+
+    const data = await api(`/api/invoices?type=${type}`);
+
+    if (!data.length) {
+        $('#page-content').innerHTML = `
+            <div class="card"><div class="empty-state">
+                <p>No ${label.toLowerCase()} yet.</p>
+                <button class="btn btn-primary" onclick="openInvoiceForm('${type}')">Create your first ${type}</button>
+            </div></div>`;
+        return;
+    }
+
+    $('#page-content').innerHTML = `
+        <div class="card"><table>
+            <thead><tr><th>Number</th><th>Client</th><th>Status</th><th class="text-right">Amount</th><th>Due Date</th><th>Actions</th></tr></thead>
+            <tbody>${data.map(inv => `
+                <tr>
+                    <td><strong>${inv.invoice_number}</strong></td>
+                    <td>${inv.client_name}</td>
+                    <td><span class="badge badge-${inv.status}">${inv.status}</span></td>
+                    <td class="text-right">${formatNaira(inv.total)}</td>
+                    <td>${inv.due_date}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${inv.id}')">View</button>
+                            ${inv.status === 'draft' ? `<button class="btn btn-sm btn-primary" onclick="sendInvoice('${inv.id}')">Send</button>` : ''}
+                            ${['sent','overdue'].includes(inv.status) ? `<button class="btn btn-sm btn-secondary" onclick="sendReminder('${inv.id}')">Remind</button>` : ''}
+                        </div>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table></div>`;
+}
+
+// Clients
+async function renderClients() {
+    $('#page-title').textContent = 'Clients';
+    $('#topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="openClientForm()">+ Add Client</button>`;
+
+    clients = await api('/api/clients');
+
+    if (!clients.length) {
+        $('#page-content').innerHTML = `
+            <div class="card"><div class="empty-state">
+                <p>No clients yet. Add your first client to start invoicing.</p>
+                <button class="btn btn-primary" onclick="openClientForm()">Add Client</button>
+            </div></div>`;
+        return;
+    }
+
+    $('#page-content').innerHTML = `
+        <div class="card"><table>
+            <thead><tr><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
+            <tbody>${clients.map(c => `
+                <tr>
+                    <td><strong>${c.name}</strong></td>
+                    <td>${c.company || '-'}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-secondary" onclick="openClientForm('${c.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteClient('${c.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table></div>`;
+}
+
+function openClientForm(editId) {
+    const c = editId ? clients.find(x => x.id === editId) : {};
+    openModal(editId ? 'Edit Client' : 'Add Client', `
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="c-name" value="${c.name || ''}" required></div>
+            <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="c-email" type="email" value="${c.email || ''}" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Company</label><input class="form-input" id="c-company" value="${c.company || ''}"></div>
+            <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="c-phone" value="${c.phone || ''}"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><textarea class="form-textarea" id="c-address" rows="2">${c.address || ''}</textarea></div>
+    `, `
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveClient('${editId || ''}')">${editId ? 'Update' : 'Save'} Client</button>
+    `);
+}
+
+async function saveClient(editId) {
+    const data = {
+        name: $('#c-name').value, email: $('#c-email').value,
+        company: $('#c-company').value, phone: $('#c-phone').value, address: $('#c-address').value,
+    };
+    if (!data.name || !data.email) { toast('Name and email are required', 'error'); return; }
+
+    if (editId) {
+        await api(`/api/clients/${editId}`, { method: 'PUT', body: data });
+        toast('Client updated');
+    } else {
+        await api('/api/clients', { method: 'POST', body: data });
+        toast('Client added');
+    }
+    closeModal();
+    renderPage();
+}
+
+async function deleteClient(id) {
+    if (!confirm('Delete this client? This cannot be undone.')) return;
+    await api(`/api/clients/${id}`, { method: 'DELETE' });
+    toast('Client deleted');
+    renderPage();
+}
+
+// Invoice/Quote form
+async function openInvoiceForm(type, editId) {
+    clients = await api('/api/clients');
+    if (!clients.length) {
+        toast('Please add a client first', 'error');
+        navigate('clients');
+        return;
+    }
+
+    let inv = null, items = [{ description: '', quantity: 1, unit_price: 0 }];
+    if (editId) {
+        inv = await api(`/api/invoices/${editId}`);
+        items = inv.items.length ? inv.items : items;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const due = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+    const label = type === 'invoice' ? 'Invoice' : 'Quote';
+
+    openModal(`${editId ? 'Edit' : 'New'} ${label}`, `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Client *</label>
+                <select class="form-select" id="inv-client">
+                    <option value="">Select a client</option>
+                    ${clients.map(c => `<option value="${c.id}" ${inv && inv.client_id === c.id ? 'selected' : ''}>${c.name} (${c.email})</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Discount (%)</label>
+                <input class="form-input" id="inv-discount" type="number" min="0" max="100" step="0.5" value="${inv ? inv.discount_percent : 0}" oninput="recalcTotals()">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Issue Date *</label>
+                <input class="form-input" id="inv-issue" type="date" value="${inv ? inv.issue_date : today}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Due Date *</label>
+                <input class="form-input" id="inv-due" type="date" value="${inv ? inv.due_date : due}">
+            </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:14px;">Line Items</h4>
+        <div class="line-items">
+            <div class="line-item line-item-header">
+                <span>Description</span><span>Qty</span><span>Unit Price (₦)</span><span>Amount</span><span></span>
+            </div>
+            <div id="items-list">
+                ${items.map((item, i) => lineItemRow(item, i)).join('')}
+            </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="addLineItem()">+ Add Line Item</button>
+
+        <div class="totals" id="totals-section">
+            <div class="totals-row"><span>Subtotal</span><span id="t-subtotal">${formatNaira(0)}</span></div>
+            <div class="totals-row"><span>Discount</span><span id="t-discount">${formatNaira(0)}</span></div>
+            <div class="totals-row"><span>VAT (${VAT_RATE}%)</span><span id="t-vat">${formatNaira(0)}</span></div>
+            <div class="totals-row total"><span>Total</span><span id="t-total">${formatNaira(0)}</span></div>
+        </div>
+
+        <div class="form-group mt-4">
+            <label class="form-label">Notes</label>
+            <textarea class="form-textarea" id="inv-notes" rows="2" placeholder="Any notes for the client...">${inv ? inv.notes : ''}</textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Terms & Conditions</label>
+            <textarea class="form-textarea" id="inv-terms" rows="2" placeholder="Payment terms, late fees, etc...">${inv ? (inv.terms || '') : 'Payment is due within 30 days of invoice date. Late payments may attract a 2% monthly interest charge.'}</textarea>
+        </div>
+
+        <div class="reminder-box">
+            <h4>
+                <label class="toggle"><input type="checkbox" id="inv-reminder" ${inv && inv.reminder_enabled ? 'checked' : ''} onchange="toggleReminderOpts()"><span class="toggle-slider"></span></label>
+                Email Reminders
+            </h4>
+            <div id="reminder-opts" style="display:${inv && inv.reminder_enabled ? 'block' : 'none'};">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Reminder Frequency</label>
+                        <select class="form-select" id="inv-freq">
+                            <option value="3" ${inv && inv.reminder_frequency_days == 3 ? 'selected' : ''}>Every 3 days</option>
+                            <option value="7" ${(!inv || inv.reminder_frequency_days == 7) ? 'selected' : ''}>Every 7 days (weekly)</option>
+                            <option value="14" ${inv && inv.reminder_frequency_days == 14 ? 'selected' : ''}>Every 14 days (bi-weekly)</option>
+                            <option value="30" ${inv && inv.reminder_frequency_days == 30 ? 'selected' : ''}>Every 30 days (monthly)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Max Reminders</label>
+                        <select class="form-select" id="inv-max-rem">
+                            <option value="1" ${inv && inv.reminder_max_count == 1 ? 'selected' : ''}>1 reminder</option>
+                            <option value="2" ${inv && inv.reminder_max_count == 2 ? 'selected' : ''}>2 reminders</option>
+                            <option value="3" ${(!inv || inv.reminder_max_count == 3) ? 'selected' : ''}>3 reminders</option>
+                            <option value="5" ${inv && inv.reminder_max_count == 5 ? 'selected' : ''}>5 reminders</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="custom-freq-group" style="display:none;">
+                    <label class="form-label">Custom Frequency (days)</label>
+                    <input class="form-input" id="inv-custom-freq" type="number" min="1" max="90" value="7">
+                </div>
+            </div>
+        </div>
+    `, `
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveInvoice('${type}', '${editId || ''}')">${editId ? 'Update' : 'Create'} ${label}</button>
+    `);
+
+    $('#inv-freq').addEventListener('change', function() {
+        $('#custom-freq-group').style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+
+    setTimeout(recalcTotals, 100);
+}
+
+function lineItemRow(item, index) {
+    return `
+        <div class="line-item" data-index="${index}">
+            <input class="form-input" placeholder="Description" value="${item.description}" oninput="recalcTotals()">
+            <input class="form-input" type="number" min="1" step="1" value="${item.quantity}" oninput="recalcTotals()">
+            <input class="form-input" type="number" min="0" step="100" value="${item.unit_price}" oninput="recalcTotals()">
+            <span style="padding:8px;font-weight:500;">${formatNaira(item.quantity * item.unit_price)}</span>
+            <button class="remove-item" onclick="removeLineItem(this)">&times;</button>
+        </div>`;
+}
+
+function addLineItem() {
+    const list = document.getElementById('items-list');
+    const index = list.children.length;
+    const div = document.createElement('div');
+    div.innerHTML = lineItemRow({ description: '', quantity: 1, unit_price: 0 }, index);
+    list.appendChild(div.firstElementChild);
+}
+
+function removeLineItem(btn) {
+    const list = document.getElementById('items-list');
+    if (list.children.length > 1) {
+        btn.closest('.line-item').remove();
+        recalcTotals();
+    }
+}
+
+function getLineItems() {
+    const rows = document.querySelectorAll('#items-list .line-item');
+    return Array.from(rows).map(row => {
+        const inputs = row.querySelectorAll('input');
+        return {
+            description: inputs[0].value,
+            quantity: parseFloat(inputs[1].value) || 0,
+            unit_price: parseFloat(inputs[2].value) || 0,
+        };
+    });
+}
+
+function recalcTotals() {
+    const items = getLineItems();
+    const discount = parseFloat($('#inv-discount')?.value) || 0;
+    const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+    const discountAmt = subtotal * (discount / 100);
+    const taxable = subtotal - discountAmt;
+    const vat = taxable * (VAT_RATE / 100);
+    const total = taxable + vat;
+
+    const rows = document.querySelectorAll('#items-list .line-item');
+    rows.forEach((row, i) => {
+        const amt = items[i] ? items[i].quantity * items[i].unit_price : 0;
+        row.querySelector('span').textContent = formatNaira(amt);
+    });
+
+    if ($('#t-subtotal')) {
+        $('#t-subtotal').textContent = formatNaira(subtotal);
+        $('#t-discount').textContent = '-' + formatNaira(discountAmt);
+        $('#t-vat').textContent = formatNaira(vat);
+        $('#t-total').textContent = formatNaira(total);
+    }
+}
+
+function toggleReminderOpts() {
+    $('#reminder-opts').style.display = $('#inv-reminder').checked ? 'block' : 'none';
+}
+
+async function saveInvoice(type, editId) {
+    const clientId = $('#inv-client').value;
+    if (!clientId) { toast('Please select a client', 'error'); return; }
+
+    const items = getLineItems().filter(i => i.description);
+    if (!items.length) { toast('Add at least one line item', 'error'); return; }
+
+    let freqDays = parseInt($('#inv-freq').value) || 7;
+    if ($('#inv-freq').value === 'custom') {
+        freqDays = parseInt($('#inv-custom-freq').value) || 7;
+    }
+
+    const body = {
+        type, client_id: clientId,
+        issue_date: $('#inv-issue').value,
+        due_date: $('#inv-due').value,
+        discount_percent: parseFloat($('#inv-discount').value) || 0,
+        items, notes: $('#inv-notes').value, terms: $('#inv-terms').value,
+        reminder_enabled: $('#inv-reminder').checked,
+        reminder_frequency_days: freqDays,
+        reminder_max_count: parseInt($('#inv-max-rem').value) || 3,
+    };
+
+    if (editId) {
+        await api(`/api/invoices/${editId}`, { method: 'PUT', body });
+        toast(`${type === 'invoice' ? 'Invoice' : 'Quote'} updated`);
+    } else {
+        const res = await api('/api/invoices', { method: 'POST', body });
+        toast(`${type === 'invoice' ? 'Invoice' : 'Quote'} #${res.invoice_number} created`);
+    }
+    closeModal();
+    renderPage();
+}
+
+// View Invoice
+async function viewInvoice(id) {
+    const inv = await api(`/api/invoices/${id}`);
+    const emails = await api(`/api/invoices/${id}/emails`);
+    const label = inv.type === 'invoice' ? 'Invoice' : 'Quote';
+
+    let statusActions = '';
+    if (inv.type === 'invoice') {
+        statusActions = `
+            ${inv.status !== 'paid' ? `<button class="btn btn-sm btn-primary" onclick="updateStatus('${id}','paid')">Mark Paid</button>` : ''}
+            ${inv.status === 'draft' ? `<button class="btn btn-sm btn-secondary" onclick="sendInvoice('${id}')">Send to Client</button>` : ''}
+            ${['sent','overdue'].includes(inv.status) ? `<button class="btn btn-sm btn-secondary" onclick="sendReminder('${id}')">Send Reminder</button>` : ''}
+        `;
+    } else {
+        statusActions = `
+            ${inv.status !== 'accepted' ? `<button class="btn btn-sm btn-primary" onclick="updateStatus('${id}','accepted')">Mark Accepted</button>` : ''}
+            ${inv.status !== 'declined' ? `<button class="btn btn-sm btn-danger" onclick="updateStatus('${id}','declined')">Mark Declined</button>` : ''}
+            ${inv.status === 'draft' ? `<button class="btn btn-sm btn-secondary" onclick="sendInvoice('${id}')">Send to Client</button>` : ''}
+        `;
+    }
+
+    openModal(`${label} ${inv.invoice_number}`, `
+        <div class="flex gap-2 mb-4 items-center">
+            <span class="badge badge-${inv.status}">${inv.status}</span>
+            ${statusActions}
+            <button class="btn btn-sm btn-secondary" onclick="openInvoiceForm('${inv.type}','${id}')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteInvoice('${id}')">Delete</button>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchViewTab(this,'preview-tab')">Preview</button>
+            <button class="tab" onclick="switchViewTab(this,'emails-tab')">Email History (${emails.length})</button>
+        </div>
+        <div id="preview-tab">
+            <iframe class="preview-frame" src="/api/invoices/${id}/preview"></iframe>
+        </div>
+        <div id="emails-tab" style="display:none;">
+            ${emails.length ? `<table>
+                <thead><tr><th>Date</th><th>To</th><th>Subject</th><th>Type</th></tr></thead>
+                <tbody>${emails.map(e => `<tr><td>${e.sent_at}</td><td>${e.recipient}</td><td>${e.subject}</td><td>${e.type}</td></tr>`).join('')}</tbody>
+            </table>` : '<div class="empty-state"><p>No emails sent yet.</p></div>'}
+        </div>
+    `, '');
+
+    // Make modal wider for preview
+    document.getElementById('modal').style.maxWidth = '900px';
+}
+
+function switchViewTab(btn, tabId) {
+    btn.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const parent = btn.closest('.modal-body');
+    parent.querySelectorAll('[id$="-tab"]').forEach(t => t.style.display = 'none');
+    parent.querySelector(`#${tabId}`).style.display = 'block';
+}
+
+async function sendInvoice(id) {
+    if (!confirm('Send this invoice to the client via email?')) return;
+    const res = await api(`/api/invoices/${id}/send`, { method: 'POST' });
+    if (res.success) {
+        toast('Invoice sent successfully!');
+        closeModal();
+        renderPage();
+    } else {
+        toast(res.error || 'Failed to send', 'error');
+    }
+}
+
+async function sendReminder(id) {
+    if (!confirm('Send a payment reminder to the client?')) return;
+    const res = await api(`/api/invoices/${id}/remind`, { method: 'POST' });
+    if (res.success) {
+        toast('Reminder sent!');
+        closeModal();
+        renderPage();
+    } else {
+        toast(res.error || 'Failed to send', 'error');
+    }
+}
+
+async function updateStatus(id, status) {
+    await api(`/api/invoices/${id}/status`, { method: 'PUT', body: { status } });
+    toast(`Status updated to ${status}`);
+    closeModal();
+    renderPage();
+}
+
+async function deleteInvoice(id) {
+    if (!confirm('Delete this invoice? This cannot be undone.')) return;
+    await api(`/api/invoices/${id}`, { method: 'DELETE' });
+    toast('Invoice deleted');
+    closeModal();
+    renderPage();
+}
+
+// Settings
+async function renderSettings() {
+    $('#page-title').textContent = 'Settings';
+    $('#topbar-actions').innerHTML = '';
+    settings = await api('/api/settings');
+
+    const logoSrc = settings.company_logo ? `/uploads/${settings.company_logo}` : '';
+
+    $('#page-content').innerHTML = `
+        <div class="tabs">
+            <button class="tab active" onclick="switchSettingsTab(this, 'tab-company')">Company Info</button>
+            <button class="tab" onclick="switchSettingsTab(this, 'tab-bank')">Bank Details</button>
+            <button class="tab" onclick="switchSettingsTab(this, 'tab-email')">Email (SMTP)</button>
+        </div>
+
+        <div id="tab-company" class="card">
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Company Logo</label>
+                    <div class="logo-upload" id="logo-upload" onclick="document.getElementById('logo-file').click()">
+                        ${logoSrc ? `<img src="${logoSrc}" id="logo-preview" /><br>` : ''}
+                        <p>${logoSrc ? 'Click to change logo' : 'Click or drag to upload your company logo'}</p>
+                        <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(this)">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="s-name" value="${settings.company_name || ''}"></div>
+                    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="s-email" value="${settings.company_email || ''}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="s-phone" value="${settings.company_phone || ''}"></div>
+                    <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="s-address" value="${settings.company_address || ''}"></div>
+                </div>
+                <button class="btn btn-primary mt-4" onclick="saveSettings('company')">Save Company Info</button>
+            </div>
+        </div>
+
+        <div id="tab-bank" class="card" style="display:none;">
+            <div class="card-body">
+                <p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">Bank details will appear on your invoices so clients know where to pay.</p>
+                <div class="form-row-3">
+                    <div class="form-group"><label class="form-label">Bank Name</label><input class="form-input" id="s-bank" value="${settings.bank_name || ''}" placeholder="e.g. GTBank, First Bank"></div>
+                    <div class="form-group"><label class="form-label">Account Name</label><input class="form-input" id="s-accname" value="${settings.account_name || ''}"></div>
+                    <div class="form-group"><label class="form-label">Account Number</label><input class="form-input" id="s-accnum" value="${settings.account_number || ''}"></div>
+                </div>
+                <button class="btn btn-primary mt-4" onclick="saveSettings('bank')">Save Bank Details</button>
+            </div>
+        </div>
+
+        <div id="tab-email" class="card" style="display:none;">
+            <div class="card-body">
+                <p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">
+                    Configure SMTP to send invoices and reminders via email.
+                    For Gmail: use smtp.gmail.com, port 587, and an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a>.
+                </p>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">SMTP Host</label><input class="form-input" id="s-smtp-host" value="${settings.smtp_host || ''}" placeholder="smtp.gmail.com"></div>
+                    <div class="form-group"><label class="form-label">SMTP Port</label><input class="form-input" id="s-smtp-port" type="number" value="${settings.smtp_port || 587}"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Username / Email</label><input class="form-input" id="s-smtp-user" value="${settings.smtp_user || ''}"></div>
+                    <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="s-smtp-pass" type="password" placeholder="Enter SMTP password"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">From Name</label><input class="form-input" id="s-smtp-fname" value="${settings.smtp_from_name || ''}" placeholder="Your Company Name"></div>
+                    <div class="form-group"><label class="form-label">From Email</label><input class="form-input" id="s-smtp-femail" value="${settings.smtp_from_email || ''}"></div>
+                </div>
+                <button class="btn btn-primary mt-4" onclick="saveSettings('email')">Save Email Settings</button>
+            </div>
+        </div>
+    `;
+
+    // Drag and drop for logo
+    const uploadArea = document.getElementById('logo-upload');
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'var(--green)'; });
+    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'var(--gray-300)'; });
+    uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.style.borderColor = 'var(--gray-300)';
+        if (e.dataTransfer.files.length) uploadLogoFile(e.dataTransfer.files[0]);
+    });
+}
+
+function switchSettingsTab(btn, tabId) {
+    btn.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['tab-company','tab-bank','tab-email'].forEach(id => {
+        document.getElementById(id).style.display = id === tabId ? 'block' : 'none';
+    });
+}
+
+async function saveSettings(section) {
+    let body = {};
+    if (section === 'company') {
+        body = {
+            company_name: $('#s-name').value, company_email: $('#s-email').value,
+            company_phone: $('#s-phone').value, company_address: $('#s-address').value,
+        };
+    } else if (section === 'bank') {
+        body = {
+            bank_name: $('#s-bank').value, account_name: $('#s-accname').value,
+            account_number: $('#s-accnum').value,
+        };
+    } else if (section === 'email') {
+        body = {
+            smtp_host: $('#s-smtp-host').value, smtp_port: parseInt($('#s-smtp-port').value),
+            smtp_user: $('#s-smtp-user').value, smtp_from_name: $('#s-smtp-fname').value,
+            smtp_from_email: $('#s-smtp-femail').value,
+        };
+        const pass = $('#s-smtp-pass').value;
+        if (pass) body.smtp_password = pass;
+    }
+    await api('/api/settings', { method: 'POST', body });
+    toast('Settings saved');
+}
+
+function uploadLogo(input) {
+    if (input.files.length) uploadLogoFile(input.files[0]);
+}
+
+async function uploadLogoFile(file) {
+    const formData = new FormData();
+    formData.append('logo', file);
+    const res = await fetch('/api/settings/logo', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+        toast('Logo uploaded');
+        renderSettings();
+    } else {
+        toast('Upload failed', 'error');
+    }
+}
+
+// Init
+renderPage();
+</script>
+</body>
+</html>
