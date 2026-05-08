@@ -1,1223 +1,1105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowLedger</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --green: #16a34a; --green-light: #f0fdf4; --green-dark: #15803d;
-            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
-            --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
-            --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
-            --gray-900: #111827;
-            --red: #dc2626; --blue: #2563eb; --yellow: #f59e0b;
-            --purple: #7c3aed;
-            --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        body { font-family: 'Segoe UI', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-800); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowLedger</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#16a34a;--green-light:#f0fdf4;--green-dark:#15803d;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;
+  --gray-800:#1f2937;--gray-900:#111827;
+  --red:#dc2626;--blue:#2563eb;--yellow:#f59e0b;--purple:#7c3aed;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--gray-50);color:var(--gray-800)}
 
-        /* Layout */
-        .app { display: flex; min-height: 100vh; }
-        .sidebar {
-            width: 250px; background: var(--gray-900); color: white; padding: 0;
-            position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100;
-        }
-        .sidebar-brand { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-brand h1 { font-size: 20px; font-weight: 700; color: white; }
-        .sidebar-brand span { font-size: 11px; color: var(--gray-400); display: block; margin-top: 2px; }
-        .sidebar-nav { padding: 12px 0; }
-        .nav-item {
-            display: flex; align-items: center; gap: 12px; padding: 10px 24px; color: var(--gray-400);
-            cursor: pointer; font-size: 14px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left;
-        }
-        .nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
-        .nav-item.active { color: white; background: rgba(22,163,74,0.2); border-right: 3px solid var(--green); }
-        .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
-        .nav-section { padding: 8px 24px 4px; font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+/* ── Auth screen ──────────────────────────────────── */
+#auth-screen{
+  position:fixed;inset:0;background:linear-gradient(135deg,#111827 0%,#1f2937 100%);
+  display:flex;align-items:center;justify-content:center;z-index:500;
+}
+.auth-box{
+  background:white;border-radius:16px;padding:40px;width:90%;max-width:460px;
+  box-shadow:0 25px 60px rgba(0,0,0,0.4);
+}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo h1{font-size:28px;font-weight:800;color:var(--gray-900)}
+.auth-logo p{color:var(--gray-500);font-size:13px;margin-top:4px}
+.auth-tabs{display:flex;border-bottom:2px solid var(--gray-200);margin-bottom:24px}
+.auth-tab{flex:1;padding:10px;font-size:14px;font-weight:500;color:var(--gray-500);cursor:pointer;
+  border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px}
+.auth-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.auth-error{color:var(--red);font-size:13px;margin-bottom:12px;min-height:18px}
 
-        .main { margin-left: 250px; flex: 1; padding: 0; }
-        .topbar {
-            background: white; border-bottom: 1px solid var(--gray-200); padding: 16px 32px;
-            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;
-        }
-        .topbar h2 { font-size: 20px; font-weight: 600; }
-        .content { padding: 24px 32px; }
+/* ── Main layout ───────────────────────────────────── */
+#main-app{display:none}
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:250px;background:var(--gray-900);color:white;padding:0;
+  position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;
+}
+.sidebar-brand{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.sidebar-brand h1{font-size:20px;font-weight:700;color:white}
+.sidebar-brand span{font-size:11px;color:var(--gray-400);display:block;margin-top:2px}
+.sidebar-nav{padding:12px 0}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:10px 24px;color:var(--gray-400);
+  cursor:pointer;font-size:14px;transition:all .15s;border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{color:white;background:rgba(255,255,255,.05)}
+.nav-item.active{color:white;background:rgba(22,163,74,.2);border-right:3px solid var(--green)}
+.nav-item svg{width:20px;height:20px;flex-shrink:0}
+.nav-section{padding:8px 24px 4px;font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+.main{margin-left:250px;flex:1}
+.topbar{
+  background:white;border-bottom:1px solid var(--gray-200);padding:14px 32px;
+  display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;
+}
+.topbar h2{font-size:20px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-600)}
+.content{padding:24px 32px}
 
-        /* Buttons */
-        .btn {
-            display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius);
-            font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s;
-        }
-        .btn-primary { background: var(--green); color: white; }
-        .btn-primary:hover { background: var(--green-dark); }
-        .btn-secondary { background: white; color: var(--gray-700); border-color: var(--gray-300); }
-        .btn-secondary:hover { background: var(--gray-50); }
-        .btn-danger { background: var(--red); color: white; }
-        .btn-danger:hover { opacity: 0.9; }
-        .btn-sm { padding: 5px 10px; font-size: 13px; }
-        .btn-icon { padding: 6px 8px; }
+/* ── Buttons ───────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);
+  font-size:14px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;
+}
+.btn-primary{background:var(--green);color:white}.btn-primary:hover{background:var(--green-dark)}
+.btn-secondary{background:white;color:var(--gray-700);border-color:var(--gray-300)}.btn-secondary:hover{background:var(--gray-50)}
+.btn-danger{background:var(--red);color:white}.btn-danger:hover{opacity:.9}
+.btn-sm{padding:5px 10px;font-size:13px}
 
-        /* Cards & Tables */
-        .card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); box-shadow: var(--shadow); }
-        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
-        .card-header h3 { font-size: 16px; font-weight: 600; }
-        .card-body { padding: 20px; }
+/* ── Cards & Tables ────────────────────────────────── */
+.card{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+.card-header h3{font-size:16px;font-weight:600}
+.card-body{padding:20px}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:12px;color:var(--gray-500);text-transform:uppercase;
+  letter-spacing:.5px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);font-weight:600}
+td{padding:12px 16px;border-bottom:1px solid var(--gray-100);font-size:14px}
+tr:hover td{background:var(--gray-50)}
 
-        table { width: 100%; border-collapse: collapse; }
-        th { padding: 10px 16px; text-align: left; font-size: 12px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); font-weight: 600; }
-        td { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
-        tr:hover td { background: var(--gray-50); }
+/* ── Forms ─────────────────────────────────────────── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:500;color:var(--gray-700);margin-bottom:4px}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:8px 12px;border:1px solid var(--gray-300);border-radius:var(--radius);
+  font-size:14px;color:var(--gray-800);background:white;transition:border-color .15s;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.1)}
+.form-textarea{min-height:80px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 
-        /* Forms */
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-700); margin-bottom: 4px; }
-        .form-input, .form-select, .form-textarea {
-            width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius);
-            font-size: 14px; color: var(--gray-800); background: white; transition: border-color 0.15s;
-        }
-        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
-        .form-textarea { min-height: 80px; resize: vertical; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+/* ── Custom client picker ──────────────────────────── */
+.client-picker{position:relative}
+.client-picker-trigger{
+  padding:8px 12px;border:1px solid var(--gray-300);border-radius:var(--radius);cursor:pointer;
+  background:white;display:flex;justify-content:space-between;align-items:center;min-height:40px;
+  transition:border-color .15s;
+}
+.client-picker-trigger:hover,.client-picker-trigger.open{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.1)}
+.client-picker-menu{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:60;
+  background:white;border:1px solid var(--gray-200);border-radius:var(--radius);
+  box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:280px;overflow-y:auto;display:none;
+}
+.client-option{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gray-100)}
+.client-option:last-child{border-bottom:none}
+.client-option:hover{background:var(--gray-50)}
+.client-option .co-name{font-weight:600;font-size:14px;color:var(--gray-800)}
+.client-option .co-detail{font-size:12px;color:var(--gray-500);margin-top:2px}
 
-        /* Status badges */
-        .badge {
-            display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px;
-            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .badge-draft { background: var(--gray-100); color: var(--gray-600); }
-        .badge-sent { background: #dbeafe; color: var(--blue); }
-        .badge-paid { background: var(--green-light); color: var(--green); }
-        .badge-overdue { background: #fef2f2; color: var(--red); }
-        .badge-cancelled { background: var(--gray-100); color: var(--gray-400); }
-        .badge-accepted { background: var(--green-light); color: var(--green); }
-        .badge-declined { background: #fef2f2; color: var(--red); }
+/* ── Currency toggle ───────────────────────────────── */
+.currency-toggle{display:flex;border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden}
+.currency-btn{flex:1;padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer;
+  background:white;color:var(--gray-600);border:none;transition:all .15s}
+.currency-btn.active{background:var(--green);color:white}
+.currency-btn:not(.active):hover{background:var(--gray-50)}
 
-        /* Dashboard stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); padding: 20px; box-shadow: var(--shadow); }
-        .stat-card .stat-label { font-size: 13px; color: var(--gray-500); margin-bottom: 4px; }
-        .stat-card .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-900); }
-        .stat-card .stat-value.green { color: var(--green); }
-        .stat-card .stat-value.red { color: var(--red); }
-        .stat-card .stat-value.blue { color: var(--blue); }
-        .stat-card .stat-value.purple { color: var(--purple); }
+/* ── Badges ────────────────────────────────────────── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.badge-draft{background:var(--gray-100);color:var(--gray-600)}
+.badge-sent{background:#dbeafe;color:var(--blue)}
+.badge-paid{background:var(--green-light);color:var(--green)}
+.badge-overdue{background:#fef2f2;color:var(--red)}
+.badge-cancelled{background:var(--gray-100);color:var(--gray-400)}
+.badge-accepted{background:var(--green-light);color:var(--green)}
+.badge-declined{background:#fef2f2;color:var(--red)}
+.badge-cash{background:#fef3c7;color:#92400e}
+.badge-bank_transfer{background:#dbeafe;color:#1e40af}
+.badge-cheque{background:#ede9fe;color:#5b21b6}
 
-        /* Logo upload */
-        .logo-upload {
-            border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 30px; text-align: center;
-            cursor: pointer; transition: all 0.15s; background: var(--gray-50);
-        }
-        .logo-upload:hover { border-color: var(--green); background: var(--green-light); }
-        .logo-upload img { max-height: 80px; max-width: 200px; margin-bottom: 8px; }
-        .logo-upload p { color: var(--gray-500); font-size: 13px; }
+/* ── Stats ─────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);padding:20px;box-shadow:var(--shadow)}
+.stat-card .stat-label{font-size:13px;color:var(--gray-500);margin-bottom:4px}
+.stat-card .stat-value{font-size:28px;font-weight:700;color:var(--gray-900)}
+.stat-card .stat-value.green{color:var(--green)}.stat-card .stat-value.red{color:var(--red)}
+.stat-card .stat-value.blue{color:var(--blue)}.stat-card .stat-value.purple{color:var(--purple)}
 
-        /* Modal */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
-            display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0;
-            pointer-events: none; transition: opacity 0.2s;
-        }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal {
-            background: white; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh;
-            overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h3 { font-size: 18px; font-weight: 600; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray-400); padding: 4px; }
-        .modal-close:hover { color: var(--gray-700); }
-        .modal-body { padding: 24px; }
-        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 8px; }
+/* ── Logo upload ───────────────────────────────────── */
+.logo-upload{
+  border:2px dashed var(--gray-300);border-radius:var(--radius);padding:30px;text-align:center;
+  cursor:pointer;transition:all .15s;background:var(--gray-50);
+}
+.logo-upload:hover{border-color:var(--green);background:var(--green-light)}
+.logo-upload img{max-height:80px;max-width:200px;margin-bottom:8px}
+.logo-upload p{color:var(--gray-500);font-size:13px}
 
-        /* Invoice preview */
-        .preview-frame { width: 100%; height: 600px; border: 1px solid var(--gray-200); border-radius: var(--radius); }
+/* ── Modal ─────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;
+  pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal{
+  background:white;border-radius:12px;width:90%;max-width:700px;max-height:90vh;
+  overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:18px;font-weight:600}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--gray-400);padding:4px}
+.modal-close:hover{color:var(--gray-700)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:8px}
 
-        /* Toast notifications */
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
-        .toast {
-            padding: 12px 20px; border-radius: var(--radius); color: white; font-size: 14px; font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease;
-        }
-        .toast-success { background: var(--green); }
-        .toast-error { background: var(--red); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* ── Tabs ──────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:2px solid var(--gray-200);margin-bottom:20px}
+.tab{padding:10px 20px;font-size:14px;font-weight:500;color:var(--gray-500);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-2px;background:none;
+  border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--gray-700)}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
 
-        /* Tabs */
-        .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--gray-200); margin-bottom: 20px; }
-        .tab {
-            padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); cursor: pointer;
-            border-bottom: 2px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none;
-        }
-        .tab:hover { color: var(--gray-700); }
-        .tab.active { color: var(--green); border-bottom-color: var(--green); }
+/* ── Line items ────────────────────────────────────── */
+.line-items{margin:16px 0}
+.line-item{display:grid;grid-template-columns:1fr 90px 130px 130px 36px;gap:8px;margin-bottom:8px;align-items:start}
+.line-item-header{font-size:12px;color:var(--gray-500);font-weight:600;text-transform:uppercase;padding-bottom:4px}
+.line-item .form-input{padding:6px 10px}
+.remove-item{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:18px;padding:6px}
+.remove-item:hover{color:var(--red)}
+.totals{max-width:350px;margin-left:auto;margin-top:16px}
+.totals-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
+.totals-row.total{border-top:2px solid var(--gray-900);padding-top:10px;margin-top:6px;font-weight:700;font-size:16px}
 
-        /* Line items */
-        .line-items { margin: 16px 0; }
-        .line-item { display: grid; grid-template-columns: 1fr 100px 140px 140px 40px; gap: 8px; margin-bottom: 8px; align-items: start; }
-        .line-item-header { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; padding-bottom: 4px; }
-        .line-item .form-input { padding: 6px 10px; }
-        .remove-item { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 18px; padding: 6px; }
-        .remove-item:hover { color: var(--red); }
+/* ── Reminders ─────────────────────────────────────── */
+.reminder-box{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-top:16px}
+.reminder-box h4{font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.toggle{position:relative;display:inline-block;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--gray-300);border-radius:24px;transition:.2s}
+.toggle-slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s}
+.toggle input:checked + .toggle-slider{background:var(--green)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
 
-        /* Totals section */
-        .totals { max-width: 350px; margin-left: auto; margin-top: 16px; }
-        .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
-        .totals-row.total { border-top: 2px solid var(--gray-900); padding-top: 10px; margin-top: 6px; font-weight: 700; font-size: 16px; }
+/* ── Ledger ────────────────────────────────────────── */
+.ledger-card{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow);margin-bottom:16px}
+.ledger-card-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-radius:var(--radius)}
+.ledger-card-header:hover{background:var(--gray-50)}
+.ledger-card-header h4{font-size:15px;font-weight:600}
+.ledger-card-body{border-top:1px solid var(--gray-200)}
+.ledger-summary{display:flex;gap:24px}
+.ledger-summary-item .label{font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
+.ledger-summary-item .value{font-size:18px;font-weight:700;margin-top:2px}
 
-        /* Reminder settings */
-        .reminder-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px; margin-top: 16px; }
-        .reminder-box h4 { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .toggle input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--gray-300); border-radius: 24px; transition: 0.2s;
-        }
-        .toggle-slider:before {
-            content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
-            background: white; border-radius: 50%; transition: 0.2s;
-        }
-        .toggle input:checked + .toggle-slider { background: var(--green); }
-        .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+/* ── Reports ───────────────────────────────────────── */
+.report-table{width:100%;border-collapse:collapse}
+.report-table th,.report-table td{padding:10px 16px;font-size:14px}
+.report-table th{text-align:left;background:var(--gray-50);border-bottom:2px solid var(--gray-200);font-weight:600;color:var(--gray-700);text-transform:none;letter-spacing:0}
+.report-table td{border-bottom:1px solid var(--gray-100)}
+.report-table tr.total-row td{font-weight:700;border-top:2px solid var(--gray-800);background:var(--gray-50)}
+.report-table tr.subtotal-row td{font-weight:600;background:var(--gray-50)}
+.report-table .indent{padding-left:32px}
+.filter-bar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.filter-bar label{font-size:13px;font-weight:500;color:var(--gray-600)}
+.filter-bar .form-input{width:auto}
 
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-400); }
-        .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
-        .empty-state p { font-size: 15px; margin-bottom: 16px; }
+/* ── Misc ──────────────────────────────────────────── */
+.preview-frame{width:100%;height:600px;border:1px solid var(--gray-200);border-radius:var(--radius)}
+.toast-container{position:fixed;top:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:var(--radius);color:white;font-size:14px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:slideIn .3s ease}
+.toast-success{background:var(--green)}.toast-error{background:var(--red)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-400)}
+.empty-state p{font-size:15px;margin-bottom:16px}
+.clickable{cursor:pointer}
+.text-right{text-align:right}.text-center{text-align:center}
+.mt-4{margin-top:16px}.mb-4{margin-bottom:16px}
+.flex{display:flex}.gap-2{gap:8px}.items-center{align-items:center}
 
-        .clickable { cursor: pointer; }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .mt-4 { margin-top: 16px; }
-        .mb-4 { margin-bottom: 16px; }
-        .flex { display: flex; }
-        .gap-2 { gap: 8px; }
-        .items-center { align-items: center; }
-
-        /* Report table styles */
-        .report-table { width: 100%; border-collapse: collapse; }
-        .report-table th, .report-table td { padding: 10px 16px; font-size: 14px; }
-        .report-table th { text-align: left; background: var(--gray-50); border-bottom: 2px solid var(--gray-200); font-weight: 600; color: var(--gray-700); text-transform: none; letter-spacing: 0; }
-        .report-table td { border-bottom: 1px solid var(--gray-100); }
-        .report-table tr.total-row td { font-weight: 700; border-top: 2px solid var(--gray-800); background: var(--gray-50); }
-        .report-table tr.subtotal-row td { font-weight: 600; background: var(--gray-50); }
-        .report-table .indent { padding-left: 32px; }
-
-        /* Ledger client card */
-        .ledger-card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); box-shadow: var(--shadow); margin-bottom: 16px; }
-        .ledger-card-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .ledger-card-header:hover { background: var(--gray-50); }
-        .ledger-card-header h4 { font-size: 15px; font-weight: 600; }
-        .ledger-card-body { border-top: 1px solid var(--gray-200); }
-        .ledger-summary { display: flex; gap: 24px; }
-        .ledger-summary-item { text-align: center; }
-        .ledger-summary-item .label { font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
-        .ledger-summary-item .value { font-size: 18px; font-weight: 700; margin-top: 2px; }
-
-        /* Payment method badge */
-        .badge-cash { background: #fef3c7; color: #92400e; }
-        .badge-bank_transfer { background: #dbeafe; color: #1e40af; }
-        .badge-cheque { background: #ede9fe; color: #5b21b6; }
-
-        /* Date filter bar */
-        .filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-bar label { font-size: 13px; font-weight: 500; color: var(--gray-600); }
-        .filter-bar .form-input, .filter-bar .form-select { width: auto; }
-
-        @media (max-width: 768px) {
-            .sidebar { width: 60px; }
-            .sidebar-brand h1, .sidebar-brand span, .nav-item span, .nav-section { display: none; }
-            .nav-item { justify-content: center; padding: 12px; }
-            .main { margin-left: 60px; }
-            .content { padding: 16px; }
-            .form-row, .form-row-3 { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
-            .line-item { grid-template-columns: 1fr; }
-        }
-    </style>
+@media(max-width:768px){
+  .sidebar{width:60px}
+  .sidebar-brand h1,.sidebar-brand span,.nav-item span,.nav-section{display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .main{margin-left:60px}.content{padding:16px}
+  .form-row,.form-row-3{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .line-item{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-<div class="app">
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <h1>FlowLedger</h1>
-            <span>Nigerian Business Invoicing</span>
-        </div>
-        <nav class="sidebar-nav">
-            <button class="nav-item active" data-page="dashboard">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                <span>Dashboard</span>
-            </button>
-            <div class="nav-section">Documents</div>
-            <button class="nav-item" data-page="invoices">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                <span>Invoices</span>
-            </button>
-            <button class="nav-item" data-page="quotes">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                <span>Quotes</span>
-            </button>
-            <div class="nav-section">Accounting</div>
-            <button class="nav-item" data-page="ledger">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/></svg>
-                <span>Ledger</span>
-            </button>
-            <button class="nav-item" data-page="reports">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                <span>Reports</span>
-            </button>
-            <div class="nav-section">Manage</div>
-            <button class="nav-item" data-page="clients">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Clients</span>
-            </button>
-            <button class="nav-item" data-page="settings">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Settings</span>
-            </button>
-        </nav>
-    </aside>
 
-    <main class="main">
-        <div class="topbar">
-            <h2 id="page-title">Dashboard</h2>
-            <div id="topbar-actions"></div>
-        </div>
-        <div class="content" id="page-content"></div>
-    </main>
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>FlowLedger</h1>
+      <p>Nigerian Business Invoicing &amp; Bookkeeping</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab(this,'login-pane')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab(this,'reg-pane')">Create Account</button>
+    </div>
+
+    <div id="login-pane">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="l-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-error" id="l-err"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">Sign In</button>
+    </div>
+
+    <div id="reg-pane" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Your Name *</label><input class="form-input" id="r-name" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="r-company" placeholder="Optional"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="r-email" type="email" placeholder="your@email.com"></div>
+      <div class="form-group"><label class="form-label">Password * <span style="font-weight:400;color:var(--gray-400)">(min 6 characters)</span></label><input class="form-input" id="r-pass" type="password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="auth-error" id="r-err"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
 </div>
 
-<div class="modal-overlay" id="modal-overlay">
-    <div class="modal" id="modal">
-        <div class="modal-header">
-            <h3 id="modal-title"></h3>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        <div class="modal-body" id="modal-body"></div>
-        <div class="modal-footer" id="modal-footer"></div>
+<!-- MAIN APP -->
+<div id="main-app" class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>FlowLedger</h1>
+      <span>Nigerian Business Invoicing</span>
     </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Dashboard</span>
+      </button>
+      <div class="nav-section">Documents</div>
+      <button class="nav-item" data-page="invoices">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Invoices</span>
+      </button>
+      <button class="nav-item" data-page="quotes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg><span>Quotes</span>
+      </button>
+      <div class="nav-section">Accounting</div>
+      <button class="nav-item" data-page="ledger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/></svg><span>Ledger</span>
+      </button>
+      <button class="nav-item" data-page="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span>
+      </button>
+      <div class="nav-section">Manage</div>
+      <button class="nav-item" data-page="clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Clients</span>
+      </button>
+      <button class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h2 id="page-title">Dashboard</h2>
+      <div class="topbar-right">
+        <div id="topbar-actions"></div>
+        <div class="topbar-user">
+          <span id="user-display-name" style="font-size:13px;color:var(--gray-600)"></span>
+          <button class="btn btn-sm btn-secondary" onclick="doLogout()">Sign Out</button>
+        </div>
+      </div>
+    </div>
+    <div class="content" id="page-content"></div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-header"><h3 id="modal-title"></h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
 </div>
 
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-const API = '';
-const VAT_RATE = 7.5;
-
-let currentPage = 'dashboard';
-let clients = [];
-let invoices = [];
-let settings = {};
-
-// Utility
-function $(sel) { return document.querySelector(sel); }
-function $$(sel) { return document.querySelectorAll(sel); }
-
-function formatNaira(amount) {
-    return '₦' + Number(amount || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function toast(msg, type = 'success') {
-    const t = document.createElement('div');
-    t.className = 'toast toast-' + type;
-    t.textContent = msg;
-    $('#toast-container').appendChild(t);
-    setTimeout(function() { t.remove(); }, 3500);
-}
-
-async function api(path, opts) {
-    opts = opts || {};
-    var fetchOpts = Object.assign({}, opts);
-    fetchOpts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
-    if (opts.body) fetchOpts.body = JSON.stringify(opts.body);
-    var res = await fetch(API + path, fetchOpts);
-    return res.json();
-}
-
-function openModal(title, bodyHtml, footerHtml) {
-    $('#modal-title').textContent = title;
-    $('#modal-body').innerHTML = bodyHtml;
-    $('#modal-footer').innerHTML = footerHtml || '';
-    $('#modal').style.maxWidth = '700px';
-    $('#modal-overlay').classList.add('active');
-}
-
-function closeModal() {
-    $('#modal-overlay').classList.remove('active');
-}
-
-$('#modal-overlay').addEventListener('click', function(e) {
-    if (e.target === $('#modal-overlay')) closeModal();
-});
-
-// Navigation
-document.querySelectorAll('.nav-item').forEach(function(item) {
-    item.addEventListener('click', function() { navigate(item.dataset.page); });
-});
-
-function navigate(page) {
-    currentPage = page;
-    $$('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-    var el = document.querySelector('.nav-item[data-page="' + page + '"]');
-    if (el) el.classList.add('active');
-    renderPage();
-}
-
-async function renderPage() {
-    switch (currentPage) {
-        case 'dashboard': await renderDashboard(); break;
-        case 'invoices': await renderInvoicesList('invoice'); break;
-        case 'quotes': await renderInvoicesList('quote'); break;
-        case 'ledger': await renderLedger(); break;
-        case 'reports': await renderReports(); break;
-        case 'clients': await renderClients(); break;
-        case 'settings': await renderSettings(); break;
-    }
-}
-
-// Dashboard
-async function renderDashboard() {
-    $('#page-title').textContent = 'Dashboard';
-    $('#topbar-actions').innerHTML = '<div class="flex gap-2">' +
-        '<button class="btn btn-primary" onclick="openInvoiceForm(\'invoice\')">+ New Invoice</button>' +
-        '<button class="btn btn-secondary" onclick="openInvoiceForm(\'quote\')">+ New Quote</button>' +
-        '</div>';
-    var data = await api('/api/dashboard');
-    var overdueHtml = data.overdue_count > 0 ? '<div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value red">' + data.overdue_count + '</div></div>' : '';
-    var recentHtml = '';
-    if (data.recent.length) {
-        recentHtml = '<table><thead><tr><th>Number</th><th>Client</th><th>Type</th><th>Status</th><th class="text-right">Amount</th><th>Date</th></tr></thead><tbody>';
-        data.recent.forEach(function(inv) {
-            recentHtml += '<tr class="clickable" onclick="viewInvoice(\'' + inv.id + '\')">' +
-                '<td><strong>' + inv.invoice_number + '</strong></td>' +
-                '<td>' + inv.client_name + '</td>' +
-                '<td>' + (inv.type === 'invoice' ? 'Invoice' : 'Quote') + '</td>' +
-                '<td><span class="badge badge-' + inv.status + '">' + inv.status + '</span></td>' +
-                '<td class="text-right">' + formatNaira(inv.total) + '</td>' +
-                '<td>' + inv.issue_date + '</td></tr>';
-        });
-        recentHtml += '</tbody></table>';
-    } else {
-        recentHtml = '<div class="empty-state"><p>No invoices yet. Create your first invoice to get started!</p></div>';
-    }
-    $('#page-content').innerHTML =
-        '<div class="stats-grid">' +
-            '<div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value">' + data.total_invoices + '</div></div>' +
-            '<div class="stat-card"><div class="stat-label">Total Quotes</div><div class="stat-value blue">' + data.total_quotes + '</div></div>' +
-            '<div class="stat-card"><div class="stat-label">Amount Paid</div><div class="stat-value green">' + formatNaira(data.total_paid) + '</div></div>' +
-            '<div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value red">' + formatNaira(data.total_outstanding) + '</div></div>' +
-            overdueHtml +
-        '</div>' +
-        '<div class="card"><div class="card-header"><h3>Recent Activity</h3></div>' + recentHtml + '</div>';
-}
-
-// Invoices / Quotes list
-async function renderInvoicesList(type) {
-    var label = type === 'invoice' ? 'Invoices' : 'Quotes';
-    $('#page-title').textContent = label;
-    $('#topbar-actions').innerHTML = '<button class="btn btn-primary" onclick="openInvoiceForm(\'' + type + '\')">+ New ' + (type === 'invoice' ? 'Invoice' : 'Quote') + '</button>';
-
-    var data = await api('/api/invoices?type=' + type);
-
-    if (!data.length) {
-        $('#page-content').innerHTML = '<div class="card"><div class="empty-state">' +
-            '<p>No ' + label.toLowerCase() + ' yet.</p>' +
-            '<button class="btn btn-primary" onclick="openInvoiceForm(\'' + type + '\')">Create your first ' + type + '</button>' +
-            '</div></div>';
-        return;
-    }
-
-    var rows = '';
-    data.forEach(function(inv) {
-        var actions = '<button class="btn btn-sm btn-secondary" onclick="viewInvoice(\'' + inv.id + '\')">View</button>' +
-            '<button class="btn btn-sm btn-secondary" onclick="downloadPDF(\'' + inv.id + '\')">PDF</button>';
-        if (inv.status === 'draft') actions += '<button class="btn btn-sm btn-primary" onclick="sendInvoice(\'' + inv.id + '\')">Send</button>';
-        if (inv.status === 'sent' || inv.status === 'overdue') actions += '<button class="btn btn-sm btn-secondary" onclick="sendReminder(\'' + inv.id + '\')">Remind</button>';
-
-        var paymentInfo = '';
-        if (inv.payment_method) {
-            paymentInfo = ' <span class="badge badge-' + inv.payment_method + '">' + formatPaymentMethod(inv.payment_method) + '</span>';
-        }
-
-        rows += '<tr>' +
-            '<td><strong>' + inv.invoice_number + '</strong></td>' +
-            '<td>' + inv.client_name + '</td>' +
-            '<td><span class="badge badge-' + inv.status + '">' + inv.status + '</span>' + paymentInfo + '</td>' +
-            '<td class="text-right">' + formatNaira(inv.total) + '</td>' +
-            '<td>' + inv.due_date + '</td>' +
-            '<td><div class="flex gap-2">' + actions + '</div></td></tr>';
-    });
-
-    $('#page-content').innerHTML = '<div class="card"><table>' +
-        '<thead><tr><th>Number</th><th>Client</th><th>Status</th><th class="text-right">Amount</th><th>Due Date</th><th>Actions</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table></div>';
-}
-
-function formatPaymentMethod(method) {
-    if (method === 'bank_transfer') return 'Bank Transfer';
-    if (method === 'cash') return 'Cash';
-    if (method === 'cheque') return 'Cheque';
-    return method;
-}
-
-// Clients
-async function renderClients() {
-    $('#page-title').textContent = 'Clients';
-    $('#topbar-actions').innerHTML = '<button class="btn btn-primary" onclick="openClientForm()">+ Add Client</button>';
-
-    clients = await api('/api/clients');
-
-    if (!clients.length) {
-        $('#page-content').innerHTML = '<div class="card"><div class="empty-state">' +
-            '<p>No clients yet. Add your first client to start invoicing.</p>' +
-            '<button class="btn btn-primary" onclick="openClientForm()">Add Client</button>' +
-            '</div></div>';
-        return;
-    }
-
-    var rows = '';
-    clients.forEach(function(c) {
-        rows += '<tr>' +
-            '<td><strong>' + c.name + '</strong></td>' +
-            '<td>' + (c.company || '-') + '</td>' +
-            '<td>' + c.email + '</td>' +
-            '<td>' + (c.phone || '-') + '</td>' +
-            '<td><div class="flex gap-2">' +
-                '<button class="btn btn-sm btn-secondary" onclick="openClientForm(\'' + c.id + '\')">Edit</button>' +
-                '<button class="btn btn-sm btn-danger" onclick="deleteClient(\'' + c.id + '\')">Delete</button>' +
-            '</div></td></tr>';
-    });
-
-    $('#page-content').innerHTML = '<div class="card"><table>' +
-        '<thead><tr><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table></div>';
-}
-
-function openClientForm(editId) {
-    var c = editId ? clients.find(function(x) { return x.id === editId; }) : {};
-    if (!c) c = {};
-    openModal(editId ? 'Edit Client' : 'Add Client',
-        '<div class="form-row">' +
-            '<div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="c-name" value="' + (c.name || '') + '" required></div>' +
-            '<div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="c-email" type="email" value="' + (c.email || '') + '" required></div>' +
-        '</div>' +
-        '<div class="form-row">' +
-            '<div class="form-group"><label class="form-label">Company</label><input class="form-input" id="c-company" value="' + (c.company || '') + '"></div>' +
-            '<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="c-phone" value="' + (c.phone || '') + '"></div>' +
-        '</div>' +
-        '<div class="form-group"><label class="form-label">Address</label><textarea class="form-textarea" id="c-address" rows="2">' + (c.address || '') + '</textarea></div>',
-        '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
-        '<button class="btn btn-primary" onclick="saveClient(\'' + (editId || '') + '\')">' + (editId ? 'Update' : 'Save') + ' Client</button>'
-    );
-}
-
-async function saveClient(editId) {
-    var data = {
-        name: $('#c-name').value, email: $('#c-email').value,
-        company: $('#c-company').value, phone: $('#c-phone').value, address: $('#c-address').value,
-    };
-    if (!data.name || !data.email) { toast('Name and email are required', 'error'); return; }
-
-    if (editId) {
-        await api('/api/clients/' + editId, { method: 'PUT', body: data });
-        toast('Client updated');
-    } else {
-        await api('/api/clients', { method: 'POST', body: data });
-        toast('Client added');
-    }
-    closeModal();
-    renderPage();
-}
-
-async function deleteClient(id) {
-    if (!confirm('Delete this client? This cannot be undone.')) return;
-    await api('/api/clients/' + id, { method: 'DELETE' });
-    toast('Client deleted');
-    renderPage();
-}
-
-// Invoice/Quote form
-async function openInvoiceForm(type, editId) {
-    clients = await api('/api/clients');
-    if (!clients.length) {
-        toast('Please add a client first', 'error');
-        navigate('clients');
-        return;
-    }
-
-    settings = await api('/api/settings');
-
-    var inv = null, items = [{ description: '', quantity: 1, unit_price: 0 }];
-    if (editId) {
-        inv = await api('/api/invoices/' + editId);
-        items = inv.items.length ? inv.items : items;
-    }
-
-    var today = new Date().toISOString().split('T')[0];
-    var due = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-    var label = type === 'invoice' ? 'Invoice' : 'Quote';
-
-    var logoSrc = settings.company_logo ? '/uploads/' + settings.company_logo : '';
-    var companyName = settings.company_name || '';
-    var brandingHtml = '';
-    if (logoSrc || companyName) {
-        brandingHtml = '<div style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200);margin-bottom:20px;">';
-        if (logoSrc) brandingHtml += '<img src="' + logoSrc + '" style="max-height:60px;max-width:150px;object-fit:contain;" />';
-        brandingHtml += '<div>';
-        if (companyName) brandingHtml += '<h3 style="margin:0;font-size:18px;font-weight:700;color:var(--gray-900);">' + companyName + '</h3>';
-        if (settings.company_email) brandingHtml += '<p style="margin:2px 0 0;font-size:13px;color:var(--gray-500);">' + settings.company_email + '</p>';
-        if (settings.company_phone) brandingHtml += '<p style="margin:2px 0 0;font-size:13px;color:var(--gray-500);">' + settings.company_phone + '</p>';
-        brandingHtml += '</div></div>';
-    } else {
-        brandingHtml = '<div style="padding:12px 16px;background:#fefce8;border:1px solid #fde68a;border-radius:var(--radius);margin-bottom:20px;font-size:13px;color:#92400e;">' +
-            'No company info set up yet. <a href="#" onclick="closeModal();navigate(\'settings\');return false;" style="color:#92400e;font-weight:600;">Go to Settings</a> to add your logo and company name.</div>';
-    }
-
-    var clientOpts = '';
-    clients.forEach(function(c) {
-        clientOpts += '<option value="' + c.id + '"' + (inv && inv.client_id === c.id ? ' selected' : '') + '>' + c.name + ' (' + c.email + ')</option>';
-    });
-
-    var itemsHtml = '';
-    items.forEach(function(item, i) {
-        itemsHtml += lineItemRow(item, i);
-    });
-
-    var freqOpts = [
-        {v:'3',l:'Every 3 days'}, {v:'7',l:'Every 7 days (weekly)'}, {v:'14',l:'Every 14 days (bi-weekly)'},
-        {v:'30',l:'Every 30 days (monthly)'}, {v:'custom',l:'Custom'}
-    ];
-    var freqHtml = '';
-    freqOpts.forEach(function(o) {
-        var sel = '';
-        if (inv && inv.reminder_frequency_days == o.v) sel = ' selected';
-        else if (!inv && o.v === '7') sel = ' selected';
-        freqHtml += '<option value="' + o.v + '"' + sel + '>' + o.l + '</option>';
-    });
-
-    var maxRemOpts = [1,2,3,5];
-    var maxRemHtml = '';
-    maxRemOpts.forEach(function(n) {
-        var sel = '';
-        if (inv && inv.reminder_max_count == n) sel = ' selected';
-        else if (!inv && n === 3) sel = ' selected';
-        maxRemHtml += '<option value="' + n + '"' + sel + '>' + n + ' reminder' + (n > 1 ? 's' : '') + '</option>';
-    });
-
-    openModal((editId ? 'Edit' : 'New') + ' ' + label,
-        brandingHtml +
-        '<div class="form-row">' +
-            '<div class="form-group"><label class="form-label">Client *</label><select class="form-select" id="inv-client"><option value="">Select a client</option>' + clientOpts + '</select></div>' +
-            '<div class="form-group"><label class="form-label">Discount (%)</label><input class="form-input" id="inv-discount" type="number" min="0" max="100" step="0.5" value="' + (inv ? inv.discount_percent : 0) + '" oninput="recalcTotals()"></div>' +
-        '</div>' +
-        '<div class="form-row">' +
-            '<div class="form-group"><label class="form-label">Issue Date *</label><input class="form-input" id="inv-issue" type="date" value="' + (inv ? inv.issue_date : today) + '"></div>' +
-            '<div class="form-group"><label class="form-label">Due Date *</label><input class="form-input" id="inv-due" type="date" value="' + (inv ? inv.due_date : due) + '"></div>' +
-        '</div>' +
-        '<h4 style="margin:20px 0 10px; font-size:14px;">Line Items</h4>' +
-        '<div class="line-items"><div class="line-item line-item-header"><span>Description</span><span>Qty</span><span>Unit Price (₦)</span><span>Amount</span><span></span></div>' +
-        '<div id="items-list">' + itemsHtml + '</div></div>' +
-        '<button class="btn btn-secondary btn-sm" onclick="addLineItem()">+ Add Line Item</button>' +
-        '<div class="totals" id="totals-section">' +
-            '<div class="totals-row"><span>Subtotal</span><span id="t-subtotal">' + formatNaira(0) + '</span></div>' +
-            '<div class="totals-row"><span>Discount</span><span id="t-discount">' + formatNaira(0) + '</span></div>' +
-            '<div class="totals-row"><span>VAT (' + VAT_RATE + '%)</span><span id="t-vat">' + formatNaira(0) + '</span></div>' +
-            '<div class="totals-row total"><span>Total</span><span id="t-total">' + formatNaira(0) + '</span></div>' +
-        '</div>' +
-        '<div class="form-group mt-4"><label class="form-label">Notes</label><textarea class="form-textarea" id="inv-notes" rows="2" placeholder="Any notes for the client...">' + (inv ? inv.notes : '') + '</textarea></div>' +
-        '<div class="form-group"><label class="form-label">Terms & Conditions</label><textarea class="form-textarea" id="inv-terms" rows="2" placeholder="Payment terms, late fees, etc...">' + (inv ? (inv.terms || '') : 'Payment is due within 30 days of invoice date. Late payments may attract a 2% monthly interest charge.') + '</textarea></div>' +
-        '<div class="reminder-box"><h4><label class="toggle"><input type="checkbox" id="inv-reminder"' + (inv && inv.reminder_enabled ? ' checked' : '') + ' onchange="toggleReminderOpts()"><span class="toggle-slider"></span></label> Email Reminders</h4>' +
-        '<div id="reminder-opts" style="display:' + (inv && inv.reminder_enabled ? 'block' : 'none') + ';">' +
-            '<div class="form-row"><div class="form-group"><label class="form-label">Reminder Frequency</label><select class="form-select" id="inv-freq">' + freqHtml + '</select></div>' +
-            '<div class="form-group"><label class="form-label">Max Reminders</label><select class="form-select" id="inv-max-rem">' + maxRemHtml + '</select></div></div>' +
-            '<div class="form-group" id="custom-freq-group" style="display:none;"><label class="form-label">Custom Frequency (days)</label><input class="form-input" id="inv-custom-freq" type="number" min="1" max="90" value="7"></div>' +
-        '</div></div>',
-        '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
-        '<button class="btn btn-primary" onclick="saveInvoice(\'' + type + '\', \'' + (editId || '') + '\')">' + (editId ? 'Update' : 'Create') + ' ' + label + '</button>'
-    );
-
-    $('#inv-freq').addEventListener('change', function() {
-        $('#custom-freq-group').style.display = this.value === 'custom' ? 'block' : 'none';
-    });
-
-    setTimeout(recalcTotals, 100);
-}
-
-function lineItemRow(item, index) {
-    return '<div class="line-item" data-index="' + index + '">' +
-        '<input class="form-input" placeholder="Description" value="' + (item.description || '') + '" oninput="recalcTotals()">' +
-        '<input class="form-input" type="number" min="1" step="1" value="' + item.quantity + '" oninput="recalcTotals()">' +
-        '<input class="form-input" type="number" min="0" step="100" value="' + item.unit_price + '" oninput="recalcTotals()">' +
-        '<span style="padding:8px;font-weight:500;">' + formatNaira(item.quantity * item.unit_price) + '</span>' +
-        '<button class="remove-item" onclick="removeLineItem(this)">&times;</button></div>';
-}
-
-function addLineItem() {
-    var list = document.getElementById('items-list');
-    var index = list.children.length;
-    var div = document.createElement('div');
-    div.innerHTML = lineItemRow({ description: '', quantity: 1, unit_price: 0 }, index);
-    list.appendChild(div.firstElementChild);
-}
-
-function removeLineItem(btn) {
-    var list = document.getElementById('items-list');
-    if (list.children.length > 1) {
-        btn.closest('.line-item').remove();
-        recalcTotals();
-    }
-}
-
-function getLineItems() {
-    var rows = document.querySelectorAll('#items-list .line-item');
-    return Array.from(rows).map(function(row) {
-        var inputs = row.querySelectorAll('input');
-        return {
-            description: inputs[0].value,
-            quantity: parseFloat(inputs[1].value) || 0,
-            unit_price: parseFloat(inputs[2].value) || 0,
-        };
-    });
-}
-
-function recalcTotals() {
-    var items = getLineItems();
-    var discountEl = $('#inv-discount');
-    var discount = discountEl ? (parseFloat(discountEl.value) || 0) : 0;
-    var subtotal = items.reduce(function(s, i) { return s + i.quantity * i.unit_price; }, 0);
-    var discountAmt = subtotal * (discount / 100);
-    var taxable = subtotal - discountAmt;
-    var vat = taxable * (VAT_RATE / 100);
-    var total = taxable + vat;
-
-    var rows = document.querySelectorAll('#items-list .line-item');
-    rows.forEach(function(row, i) {
-        var amt = items[i] ? items[i].quantity * items[i].unit_price : 0;
-        row.querySelector('span').textContent = formatNaira(amt);
-    });
-
-    if ($('#t-subtotal')) {
-        $('#t-subtotal').textContent = formatNaira(subtotal);
-        $('#t-discount').textContent = '-' + formatNaira(discountAmt);
-        $('#t-vat').textContent = formatNaira(vat);
-        $('#t-total').textContent = formatNaira(total);
-    }
-}
-
-function toggleReminderOpts() {
-    $('#reminder-opts').style.display = $('#inv-reminder').checked ? 'block' : 'none';
-}
-
-async function saveInvoice(type, editId) {
-    var clientId = $('#inv-client').value;
-    if (!clientId) { toast('Please select a client', 'error'); return; }
-
-    var items = getLineItems().filter(function(i) { return i.description; });
-    if (!items.length) { toast('Add at least one line item', 'error'); return; }
-
-    var freqDays = parseInt($('#inv-freq').value) || 7;
-    if ($('#inv-freq').value === 'custom') {
-        freqDays = parseInt($('#inv-custom-freq').value) || 7;
-    }
-
-    var body = {
-        type: type, client_id: clientId,
-        issue_date: $('#inv-issue').value,
-        due_date: $('#inv-due').value,
-        discount_percent: parseFloat($('#inv-discount').value) || 0,
-        items: items, notes: $('#inv-notes').value, terms: $('#inv-terms').value,
-        reminder_enabled: $('#inv-reminder').checked,
-        reminder_frequency_days: freqDays,
-        reminder_max_count: parseInt($('#inv-max-rem').value) || 3,
-    };
-
-    if (editId) {
-        await api('/api/invoices/' + editId, { method: 'PUT', body: body });
-        toast((type === 'invoice' ? 'Invoice' : 'Quote') + ' updated');
-    } else {
-        var res = await api('/api/invoices', { method: 'POST', body: body });
-        toast((type === 'invoice' ? 'Invoice' : 'Quote') + ' #' + res.invoice_number + ' created');
-    }
-    closeModal();
-    renderPage();
-}
-
-// View Invoice
-async function viewInvoice(id) {
-    var inv = await api('/api/invoices/' + id);
-    var emails = await api('/api/invoices/' + id + '/emails');
-    var label = inv.type === 'invoice' ? 'Invoice' : 'Quote';
-
-    var statusActions = '';
-    if (inv.type === 'invoice') {
-        if (inv.status !== 'paid') statusActions += '<button class="btn btn-sm btn-primary" onclick="openPaymentModal(\'' + id + '\')">Mark Paid</button>';
-        if (inv.status === 'draft') statusActions += '<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\'' + id + '\')">Send to Client</button>';
-        if (inv.status === 'sent' || inv.status === 'overdue') statusActions += '<button class="btn btn-sm btn-secondary" onclick="sendReminder(\'' + id + '\')">Send Reminder</button>';
-    } else {
-        if (inv.status !== 'accepted') statusActions += '<button class="btn btn-sm btn-primary" onclick="updateStatus(\'' + id + '\',\'accepted\')">Mark Accepted</button>';
-        if (inv.status !== 'declined') statusActions += '<button class="btn btn-sm btn-danger" onclick="updateStatus(\'' + id + '\',\'declined\')">Mark Declined</button>';
-        if (inv.status === 'draft') statusActions += '<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\'' + id + '\')">Send to Client</button>';
-    }
-
-    var paymentInfo = '';
-    if (inv.payment_method) {
-        paymentInfo = '<span class="badge badge-' + inv.payment_method + '">' + formatPaymentMethod(inv.payment_method) + '</span>';
-        if (inv.payment_date) paymentInfo += ' <span style="font-size:13px;color:var(--gray-500);">on ' + inv.payment_date + '</span>';
-    }
-
-    var emailsHtml = '';
-    if (emails.length) {
-        emailsHtml = '<table><thead><tr><th>Date</th><th>To</th><th>Subject</th><th>Type</th></tr></thead><tbody>';
-        emails.forEach(function(e) {
-            emailsHtml += '<tr><td>' + e.sent_at + '</td><td>' + e.recipient + '</td><td>' + e.subject + '</td><td>' + e.type + '</td></tr>';
-        });
-        emailsHtml += '</tbody></table>';
-    } else {
-        emailsHtml = '<div class="empty-state"><p>No emails sent yet.</p></div>';
-    }
-
-    openModal(label + ' ' + inv.invoice_number,
-        '<div class="flex gap-2 mb-4 items-center" style="flex-wrap:wrap;">' +
-            '<span class="badge badge-' + inv.status + '">' + inv.status + '</span> ' +
-            paymentInfo + ' ' +
-            statusActions +
-            '<button class="btn btn-sm btn-secondary" onclick="openInvoiceForm(\'' + inv.type + '\',\'' + id + '\')">Edit</button>' +
-            '<button class="btn btn-sm btn-secondary" onclick="downloadPDF(\'' + id + '\')">Download PDF</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="deleteInvoice(\'' + id + '\')">Delete</button>' +
-        '</div>' +
-        '<div class="tabs">' +
-            '<button class="tab active" onclick="switchViewTab(this,\'preview-tab\')">Preview</button>' +
-            '<button class="tab" onclick="switchViewTab(this,\'emails-tab\')">Email History (' + emails.length + ')</button>' +
-        '</div>' +
-        '<div id="preview-tab"><iframe class="preview-frame" src="/api/invoices/' + id + '/preview"></iframe></div>' +
-        '<div id="emails-tab" style="display:none;">' + emailsHtml + '</div>',
-        ''
-    );
-
-    document.getElementById('modal').style.maxWidth = '900px';
-}
-
-function switchViewTab(btn, tabId) {
-    btn.parentElement.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-    btn.classList.add('active');
-    var parent = btn.closest('.modal-body');
-    parent.querySelectorAll('[id$="-tab"]').forEach(function(t) { t.style.display = 'none'; });
-    parent.querySelector('#' + tabId).style.display = 'block';
-}
-
-function downloadPDF(id) {
-    var printWindow = window.open('/api/invoices/' + id + '/preview', '_blank');
-    printWindow.addEventListener('load', function() {
-        var style = printWindow.document.createElement('style');
-        style.textContent = '@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } @page { margin: 10mm; size: A4; }';
-        printWindow.document.head.appendChild(style);
-        setTimeout(function() { printWindow.print(); }, 300);
-    });
-}
-
-async function sendInvoice(id) {
-    if (!confirm('Send this invoice to the client via email?')) return;
-    var res = await api('/api/invoices/' + id + '/send', { method: 'POST' });
-    if (res.success) {
-        toast('Invoice sent successfully!');
-        closeModal();
-        renderPage();
-    } else {
-        toast(res.error || 'Failed to send', 'error');
-    }
-}
-
-async function sendReminder(id) {
-    if (!confirm('Send a payment reminder to the client?')) return;
-    var res = await api('/api/invoices/' + id + '/remind', { method: 'POST' });
-    if (res.success) {
-        toast('Reminder sent!');
-        closeModal();
-        renderPage();
-    } else {
-        toast(res.error || 'Failed to send', 'error');
-    }
-}
-
-// Payment method modal
-function openPaymentModal(invoiceId) {
-    var today = new Date().toISOString().split('T')[0];
-    openModal('Record Payment',
-        '<p style="margin-bottom:16px;color:var(--gray-600);font-size:14px;">How was payment made for this invoice?</p>' +
-        '<div class="form-group">' +
-            '<label class="form-label">Payment Method *</label>' +
-            '<select class="form-select" id="pay-method">' +
-                '<option value="bank_transfer">Bank Transfer</option>' +
-                '<option value="cash">Cash</option>' +
-                '<option value="cheque">Cheque</option>' +
-            '</select>' +
-        '</div>' +
-        '<div class="form-group">' +
-            '<label class="form-label">Payment Date *</label>' +
-            '<input class="form-input" id="pay-date" type="date" value="' + today + '">' +
-        '</div>',
-        '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
-        '<button class="btn btn-primary" onclick="confirmPayment(\'' + invoiceId + '\')">Confirm Payment</button>'
-    );
-}
-
-async function confirmPayment(id) {
-    var method = $('#pay-method').value;
-    var date = $('#pay-date').value;
-    if (!method || !date) { toast('Please fill in all fields', 'error'); return; }
-    await api('/api/invoices/' + id + '/status', { method: 'PUT', body: { status: 'paid', payment_method: method, payment_date: date } });
-    toast('Payment recorded');
-    closeModal();
-    renderPage();
-}
-
-async function updateStatus(id, status) {
-    await api('/api/invoices/' + id + '/status', { method: 'PUT', body: { status: status } });
-    toast('Status updated to ' + status);
-    closeModal();
-    renderPage();
-}
-
-async function deleteInvoice(id) {
-    if (!confirm('Delete this invoice? This cannot be undone.')) return;
-    await api('/api/invoices/' + id, { method: 'DELETE' });
-    toast('Invoice deleted');
-    closeModal();
-    renderPage();
-}
-
-// Ledger
-async function renderLedger() {
-    $('#page-title').textContent = 'Ledger';
-    $('#topbar-actions').innerHTML = '';
-
-    var data = await api('/api/ledger');
-
-    if (!data.length) {
-        $('#page-content').innerHTML = '<div class="card"><div class="empty-state">' +
-            '<p>No ledger entries yet. Create invoices to see client bookkeeping here.</p>' +
-            '<button class="btn btn-primary" onclick="openInvoiceForm(\'invoice\')">Create Invoice</button>' +
-            '</div></div>';
-        return;
-    }
-
-    var html = '';
-    data.forEach(function(client) {
-        var invoiceRows = '';
-        if (client.invoices && client.invoices.length) {
-            client.invoices.forEach(function(inv) {
-                var payBadge = '';
-                if (inv.payment_method) {
-                    payBadge = '<span class="badge badge-' + inv.payment_method + '">' + formatPaymentMethod(inv.payment_method) + '</span>';
-                }
-                invoiceRows += '<tr class="clickable" onclick="viewInvoice(\'' + inv.id + '\')">' +
-                    '<td>' + inv.invoice_number + '</td>' +
-                    '<td><span class="badge badge-' + inv.status + '">' + inv.status + '</span></td>' +
-                    '<td class="text-right">' + formatNaira(inv.total) + '</td>' +
-                    '<td class="text-right">' + (inv.status === 'paid' ? formatNaira(inv.total) : formatNaira(0)) + '</td>' +
-                    '<td>' + payBadge + '</td>' +
-                    '<td>' + inv.issue_date + '</td></tr>';
-            });
-        }
-
-        html += '<div class="ledger-card">' +
-            '<div class="ledger-card-header" onclick="toggleLedgerCard(this)">' +
-                '<h4>' + client.client_name + (client.company ? ' (' + client.company + ')' : '') + '</h4>' +
-                '<div class="ledger-summary">' +
-                    '<div class="ledger-summary-item"><div class="label">Total Sent</div><div class="value">' + formatNaira(client.total_invoiced) + '</div></div>' +
-                    '<div class="ledger-summary-item"><div class="label">Paid</div><div class="value" style="color:var(--green);">' + formatNaira(client.total_paid) + '</div></div>' +
-                    '<div class="ledger-summary-item"><div class="label">Pending</div><div class="value" style="color:var(--red);">' + formatNaira(client.total_pending) + '</div></div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="ledger-card-body" style="display:none;">' +
-                '<table><thead><tr><th>Invoice #</th><th>Status</th><th class="text-right">Amount</th><th class="text-right">Paid</th><th>Method</th><th>Date</th></tr></thead>' +
-                '<tbody>' + invoiceRows + '</tbody></table>' +
-            '</div></div>';
-    });
-
-    $('#page-content').innerHTML = html;
-}
-
-function toggleLedgerCard(header) {
-    var body = header.nextElementSibling;
-    body.style.display = body.style.display === 'none' ? 'block' : 'none';
-}
-
-// Reports
+// ── State ──────────────────────────────────────────────────────────────────
+var currentUser = null, currentPage = 'dashboard';
+var clients = [], settings = {};
+var currentInvoiceCurrency = 'NGN';
 var currentReportTab = 'pnl';
+var _selectedClientId = '';
 
-async function renderReports() {
-    $('#page-title').textContent = 'Reports';
-    $('#topbar-actions').innerHTML = '';
+// ── Utils ──────────────────────────────────────────────────────────────────
+function $(s){ return document.querySelector(s); }
+function $$(s){ return document.querySelectorAll(s); }
 
-    $('#page-content').innerHTML =
-        '<div class="tabs">' +
-            '<button class="tab active" onclick="switchReportTab(this,\'pnl\')">Profit & Loss</button>' +
-            '<button class="tab" onclick="switchReportTab(this,\'balance\')">Balance Sheet</button>' +
-            '<button class="tab" onclick="switchReportTab(this,\'cashflow\')">Cash Flow</button>' +
-            '<button class="tab" onclick="switchReportTab(this,\'tax\')">Tax Report</button>' +
-        '</div>' +
-        '<div class="filter-bar">' +
-            '<label>From:</label> <input class="form-input" type="date" id="report-from" style="width:160px;">' +
-            '<label>To:</label> <input class="form-input" type="date" id="report-to" style="width:160px;">' +
-            '<button class="btn btn-primary btn-sm" onclick="loadReport()">Apply</button>' +
-        '</div>' +
-        '<div id="report-content"></div>';
+function formatNaira(n){ return '₦' + Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function formatAmount(n, cur){
+  cur = cur || currentInvoiceCurrency || 'NGN';
+  if(cur === 'USD') return '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return formatNaira(n);
+}
+function fmtPayMethod(m){ return m==='bank_transfer'?'Bank Transfer':m==='cash'?'Cash':m==='cheque'?'Cheque':m||''; }
 
-    var now = new Date();
-    var yearStart = now.getFullYear() + '-01-01';
-    var today = now.toISOString().split('T')[0];
-    $('#report-from').value = yearStart;
-    $('#report-to').value = today;
-
-    currentReportTab = 'pnl';
-    loadReport();
+function toast(msg, type){
+  var t = document.createElement('div');
+  t.className = 'toast toast-'+(type||'success'); t.textContent = msg;
+  $('#toast-container').appendChild(t);
+  setTimeout(function(){ t.remove(); }, 3500);
 }
 
-function switchReportTab(btn, tab) {
-    btn.parentElement.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-    btn.classList.add('active');
-    currentReportTab = tab;
-    loadReport();
+async function api(path, opts){
+  opts = opts || {};
+  var res = await fetch(path, Object.assign({}, opts, {
+    headers: Object.assign({'Content-Type':'application/json'}, opts.headers||{}),
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    credentials: 'same-origin'
+  }));
+  return res.json();
 }
 
-async function loadReport() {
-    var from = $('#report-from').value;
-    var to = $('#report-to').value;
-    var qs = '?start_date=' + from + '&end_date=' + to;
-    var container = $('#report-content');
-
-    switch (currentReportTab) {
-        case 'pnl': await loadPnlReport(container, qs); break;
-        case 'balance': await loadBalanceReport(container, qs); break;
-        case 'cashflow': await loadCashflowReport(container, qs); break;
-        case 'tax': await loadTaxReport(container, qs); break;
-    }
+function openModal(title, body, footer){
+  $('#modal-title').textContent = title;
+  $('#modal-body').innerHTML = body;
+  $('#modal-footer').innerHTML = footer||'';
+  $('#modal').style.maxWidth = '700px';
+  $('#modal-overlay').classList.add('active');
 }
+function closeModal(){ $('#modal-overlay').classList.remove('active'); }
+$('#modal-overlay').addEventListener('click', function(e){ if(e.target===$('#modal-overlay')) closeModal(); });
 
-async function loadPnlReport(el, qs) {
-    var data = await api('/api/reports/pnl' + qs);
-    el.innerHTML = '<div class="card"><div class="card-header"><h3>Profit & Loss Statement (Income Statement)</h3></div>' +
-        '<div class="card-body"><table class="report-table">' +
-        '<thead><tr><th>Category</th><th class="text-right">Amount</th></tr></thead>' +
-        '<tbody>' +
-            '<tr><td><strong>Revenue</strong></td><td></td></tr>' +
-            '<tr><td class="indent">Invoiced Revenue (incl. VAT)</td><td class="text-right">' + formatNaira(data.total_revenue) + '</td></tr>' +
-            '<tr class="subtotal-row"><td>Total Revenue</td><td class="text-right">' + formatNaira(data.total_revenue) + '</td></tr>' +
-            '<tr><td><strong>Less: VAT Collected</strong></td><td></td></tr>' +
-            '<tr><td class="indent">VAT (7.5%)</td><td class="text-right">(' + formatNaira(data.total_vat) + ')</td></tr>' +
-            '<tr class="subtotal-row"><td>Net Revenue (excl. VAT)</td><td class="text-right">' + formatNaira(data.net_revenue) + '</td></tr>' +
-            '<tr><td><strong>Discounts Given</strong></td><td></td></tr>' +
-            '<tr><td class="indent">Total Discounts</td><td class="text-right">(' + formatNaira(data.total_discounts) + ')</td></tr>' +
-            '<tr class="total-row"><td>Net Income</td><td class="text-right">' + formatNaira(data.net_income) + '</td></tr>' +
-        '</tbody></table>' +
-        '<p style="margin-top:16px;font-size:12px;color:var(--gray-400);">Based on ' + data.invoice_count + ' invoice(s) in the selected period.</p>' +
-        '</div></div>';
-}
-
-async function loadBalanceReport(el, qs) {
-    var data = await api('/api/reports/balance' + qs);
-    el.innerHTML = '<div class="card"><div class="card-header"><h3>Balance Sheet</h3></div>' +
-        '<div class="card-body"><table class="report-table">' +
-        '<thead><tr><th>Category</th><th class="text-right">Amount</th></tr></thead>' +
-        '<tbody>' +
-            '<tr><td><strong>Assets</strong></td><td></td></tr>' +
-            '<tr><td class="indent">Cash Received (Paid Invoices)</td><td class="text-right">' + formatNaira(data.total_paid) + '</td></tr>' +
-            '<tr><td class="indent">Accounts Receivable (Outstanding)</td><td class="text-right">' + formatNaira(data.accounts_receivable) + '</td></tr>' +
-            '<tr class="subtotal-row"><td>Total Assets</td><td class="text-right">' + formatNaira(data.total_assets) + '</td></tr>' +
-            '<tr><td><strong>Liabilities</strong></td><td></td></tr>' +
-            '<tr><td class="indent">VAT Payable to FIRS</td><td class="text-right">' + formatNaira(data.vat_payable) + '</td></tr>' +
-            '<tr class="subtotal-row"><td>Total Liabilities</td><td class="text-right">' + formatNaira(data.vat_payable) + '</td></tr>' +
-            '<tr class="total-row"><td>Equity (Assets - Liabilities)</td><td class="text-right">' + formatNaira(data.equity) + '</td></tr>' +
-        '</tbody></table></div></div>';
-}
-
-async function loadCashflowReport(el, qs) {
-    var data = await api('/api/reports/cashflow' + qs);
-    var monthRows = '';
-    if (data.monthly && data.monthly.length) {
-        data.monthly.forEach(function(m) {
-            monthRows += '<tr><td class="indent">' + m.month + '</td><td class="text-right">' + formatNaira(m.received) + '</td></tr>';
-        });
-    } else {
-        monthRows = '<tr><td class="indent" colspan="2" style="color:var(--gray-400);">No payments received in this period.</td></tr>';
-    }
-
-    var methodRows = '';
-    if (data.by_method && data.by_method.length) {
-        data.by_method.forEach(function(m) {
-            methodRows += '<tr><td class="indent">' + formatPaymentMethod(m.method || 'Unspecified') + '</td><td class="text-right">' + formatNaira(m.amount) + '</td></tr>';
-        });
-    }
-
-    el.innerHTML = '<div class="card"><div class="card-header"><h3>Cash Flow Statement</h3></div>' +
-        '<div class="card-body"><table class="report-table">' +
-        '<thead><tr><th>Category</th><th class="text-right">Amount</th></tr></thead>' +
-        '<tbody>' +
-            '<tr><td><strong>Cash Inflows</strong></td><td></td></tr>' +
-            '<tr><td class="indent">Total Received</td><td class="text-right">' + formatNaira(data.total_received) + '</td></tr>' +
-            '<tr><td><strong>Monthly Breakdown</strong></td><td></td></tr>' +
-            monthRows +
-            (methodRows ? '<tr><td><strong>By Payment Method</strong></td><td></td></tr>' + methodRows : '') +
-            '<tr><td><strong>Pending Inflows</strong></td><td></td></tr>' +
-            '<tr><td class="indent">Outstanding Invoices</td><td class="text-right">' + formatNaira(data.outstanding) + '</td></tr>' +
-            '<tr class="total-row"><td>Net Cash Position</td><td class="text-right">' + formatNaira(data.total_received) + '</td></tr>' +
-        '</tbody></table></div></div>';
-}
-
-async function loadTaxReport(el, qs) {
-    var data = await api('/api/reports/tax' + qs);
-    var detailRows = '';
-    if (data.details && data.details.length) {
-        data.details.forEach(function(d) {
-            detailRows += '<tr>' +
-                '<td>' + d.invoice_number + '</td>' +
-                '<td>' + d.client_name + '</td>' +
-                '<td>' + d.issue_date + '</td>' +
-                '<td class="text-right">' + formatNaira(d.subtotal) + '</td>' +
-                '<td class="text-right">' + formatNaira(d.vat_amount) + '</td>' +
-                '<td class="text-right">' + formatNaira(d.total) + '</td>' +
-                '<td><span class="badge badge-' + d.status + '">' + d.status + '</span></td></tr>';
-        });
-    }
-
-    el.innerHTML = '<div class="card"><div class="card-header"><h3>Sales Tax (VAT) Report</h3></div>' +
-        '<div class="card-body">' +
-            '<div class="stats-grid" style="margin-bottom:20px;">' +
-                '<div class="stat-card"><div class="stat-label">Total Taxable Revenue</div><div class="stat-value">' + formatNaira(data.total_taxable) + '</div></div>' +
-                '<div class="stat-card"><div class="stat-label">Total VAT Collected</div><div class="stat-value purple">' + formatNaira(data.total_vat) + '</div></div>' +
-                '<div class="stat-card"><div class="stat-label">VAT from Paid Invoices</div><div class="stat-value green">' + formatNaira(data.vat_collected) + '</div></div>' +
-                '<div class="stat-card"><div class="stat-label">VAT Pending Collection</div><div class="stat-value red">' + formatNaira(data.vat_pending) + '</div></div>' +
-            '</div>' +
-            (detailRows ? '<h4 style="margin-bottom:12px;font-size:15px;">Invoice-by-Invoice Breakdown</h4>' +
-                '<table class="report-table">' +
-                '<thead><tr><th>Invoice #</th><th>Client</th><th>Date</th><th class="text-right">Subtotal</th><th class="text-right">VAT</th><th class="text-right">Total</th><th>Status</th></tr></thead>' +
-                '<tbody>' + detailRows + '</tbody></table>' : '<div class="empty-state"><p>No invoices in this period.</p></div>') +
-        '</div></div>';
-}
-
-// Settings
-async function renderSettings() {
-    $('#page-title').textContent = 'Settings';
-    $('#topbar-actions').innerHTML = '';
-    settings = await api('/api/settings');
-
-    var logoSrc = settings.company_logo ? '/uploads/' + settings.company_logo : '';
-
-    $('#page-content').innerHTML =
-        '<div class="tabs">' +
-            '<button class="tab active" onclick="switchSettingsTab(this, \'tab-company\')">Company Info</button>' +
-            '<button class="tab" onclick="switchSettingsTab(this, \'tab-bank\')">Bank Details</button>' +
-            '<button class="tab" onclick="switchSettingsTab(this, \'tab-email\')">Email (SMTP)</button>' +
-        '</div>' +
-        '<div id="tab-company" class="card"><div class="card-body">' +
-            '<div class="form-group"><label class="form-label">Company Logo</label>' +
-                '<div class="logo-upload" id="logo-upload" onclick="document.getElementById(\'logo-file\').click()">' +
-                    (logoSrc ? '<img src="' + logoSrc + '" id="logo-preview" /><br>' : '') +
-                    '<p>' + (logoSrc ? 'Click to change logo' : 'Click or drag to upload your company logo') + '</p>' +
-                    '<input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(this)">' +
-                '</div></div>' +
-            '<div class="form-row">' +
-                '<div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="s-name" value="' + (settings.company_name || '') + '"></div>' +
-                '<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="s-email" value="' + (settings.company_email || '') + '"></div>' +
-            '</div>' +
-            '<div class="form-row">' +
-                '<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="s-phone" value="' + (settings.company_phone || '') + '"></div>' +
-                '<div class="form-group"><label class="form-label">Address</label><input class="form-input" id="s-address" value="' + (settings.company_address || '') + '"></div>' +
-            '</div>' +
-            '<button class="btn btn-primary mt-4" onclick="saveSettings(\'company\')">Save Company Info</button>' +
-        '</div></div>' +
-        '<div id="tab-bank" class="card" style="display:none;"><div class="card-body">' +
-            '<p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">Bank details will appear on your invoices so clients know where to pay.</p>' +
-            '<div class="form-row-3">' +
-                '<div class="form-group"><label class="form-label">Bank Name</label><input class="form-input" id="s-bank" value="' + (settings.bank_name || '') + '" placeholder="e.g. GTBank, First Bank"></div>' +
-                '<div class="form-group"><label class="form-label">Account Name</label><input class="form-input" id="s-accname" value="' + (settings.account_name || '') + '"></div>' +
-                '<div class="form-group"><label class="form-label">Account Number</label><input class="form-input" id="s-accnum" value="' + (settings.account_number || '') + '"></div>' +
-            '</div>' +
-            '<button class="btn btn-primary mt-4" onclick="saveSettings(\'bank\')">Save Bank Details</button>' +
-        '</div></div>' +
-        '<div id="tab-email" class="card" style="display:none;"><div class="card-body">' +
-            '<p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">Configure SMTP to send invoices and reminders via email. For Gmail: use smtp.gmail.com, port 587, and an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a>.</p>' +
-            '<div class="form-row">' +
-                '<div class="form-group"><label class="form-label">SMTP Host</label><input class="form-input" id="s-smtp-host" value="' + (settings.smtp_host || '') + '" placeholder="smtp.gmail.com"></div>' +
-                '<div class="form-group"><label class="form-label">SMTP Port</label><input class="form-input" id="s-smtp-port" type="number" value="' + (settings.smtp_port || 587) + '"></div>' +
-            '</div>' +
-            '<div class="form-row">' +
-                '<div class="form-group"><label class="form-label">Username / Email</label><input class="form-input" id="s-smtp-user" value="' + (settings.smtp_user || '') + '"></div>' +
-                '<div class="form-group"><label class="form-label">Password</label><input class="form-input" id="s-smtp-pass" type="password" placeholder="Enter SMTP password"></div>' +
-            '</div>' +
-            '<div class="form-row">' +
-                '<div class="form-group"><label class="form-label">From Name</label><input class="form-input" id="s-smtp-fname" value="' + (settings.smtp_from_name || '') + '" placeholder="Your Company Name"></div>' +
-                '<div class="form-group"><label class="form-label">From Email</label><input class="form-input" id="s-smtp-femail" value="' + (settings.smtp_from_email || '') + '"></div>' +
-            '</div>' +
-            '<button class="btn btn-primary mt-4" onclick="saveSettings(\'email\')">Save Email Settings</button>' +
-        '</div></div>';
-
-    // Drag and drop for logo
-    var uploadArea = document.getElementById('logo-upload');
-    uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--green)'; });
-    uploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--gray-300)'; });
-    uploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--gray-300)';
-        if (e.dataTransfer.files.length) uploadLogoFile(e.dataTransfer.files[0]);
-    });
-}
-
-function switchSettingsTab(btn, tabId) {
-    btn.parentElement.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-    btn.classList.add('active');
-    ['tab-company','tab-bank','tab-email'].forEach(function(id) {
-        document.getElementById(id).style.display = id === tabId ? 'block' : 'none';
-    });
-}
-
-async function saveSettings(section) {
-    var body = {};
-    if (section === 'company') {
-        body = {
-            company_name: $('#s-name').value, company_email: $('#s-email').value,
-            company_phone: $('#s-phone').value, company_address: $('#s-address').value,
-        };
-    } else if (section === 'bank') {
-        body = {
-            bank_name: $('#s-bank').value, account_name: $('#s-accname').value,
-            account_number: $('#s-accnum').value,
-        };
-    } else if (section === 'email') {
-        body = {
-            smtp_host: $('#s-smtp-host').value, smtp_port: parseInt($('#s-smtp-port').value),
-            smtp_user: $('#s-smtp-user').value, smtp_from_name: $('#s-smtp-fname').value,
-            smtp_from_email: $('#s-smtp-femail').value,
-        };
-        var pass = $('#s-smtp-pass').value;
-        if (pass) body.smtp_password = pass;
-    }
-    await api('/api/settings', { method: 'POST', body: body });
-    toast('Settings saved');
-}
-
-function uploadLogo(input) {
-    if (input.files.length) uploadLogoFile(input.files[0]);
-}
-
-async function uploadLogoFile(file) {
-    var formData = new FormData();
-    formData.append('logo', file);
-    var res = await fetch('/api/settings/logo', { method: 'POST', body: formData });
+// ── Auth ───────────────────────────────────────────────────────────────────
+async function init(){
+  try {
+    var res = await fetch('/api/auth/me', {credentials:'same-origin'});
     var data = await res.json();
-    if (data.success) {
-        toast('Logo uploaded');
-        renderSettings();
-    } else {
-        toast('Upload failed', 'error');
-    }
+    if(data.authenticated){ currentUser = data.user; showApp(); renderPage(); }
+    else { showAuth(); }
+  } catch(e){ showAuth(); }
+}
+
+function showAuth(){
+  $('#auth-screen').style.display = 'flex';
+  $('#main-app').style.display = 'none';
+}
+function showApp(){
+  $('#auth-screen').style.display = 'none';
+  $('#main-app').style.display = 'block';
+  if(currentUser) $('#user-display-name').textContent = currentUser.name || currentUser.email;
+}
+
+function switchAuthTab(btn, pane){
+  $$('.auth-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  $('#login-pane').style.display = pane==='login-pane'?'block':'none';
+  $('#reg-pane').style.display = pane==='reg-pane'?'block':'none';
+}
+
+async function doLogin(){
+  var email = $('#l-email').value.trim(), pass = $('#l-pass').value;
+  $('#l-err').textContent = '';
+  if(!email||!pass){ $('#l-err').textContent='Enter your email and password'; return; }
+  var res = await api('/api/auth/login',{method:'POST',body:{email,password:pass}});
+  if(res.success){ currentUser = res.user; showApp(); renderPage(); }
+  else { $('#l-err').textContent = res.error||'Login failed'; }
+}
+
+async function doRegister(){
+  var name=$('#r-name').value.trim(), email=$('#r-email').value.trim(),
+      pass=$('#r-pass').value, company=$('#r-company').value.trim();
+  $('#r-err').textContent='';
+  if(!name||!email||!pass){ $('#r-err').textContent='Name, email and password are required'; return; }
+  var res = await api('/api/auth/register',{method:'POST',body:{name,email,password:pass,company_name:company}});
+  if(res.success){ currentUser = res.user; showApp(); renderPage(); }
+  else { $('#r-err').textContent = res.error||'Registration failed'; }
+}
+
+async function doLogout(){
+  await api('/api/auth/logout',{method:'POST'});
+  currentUser = null; showAuth();
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+$$('.nav-item').forEach(function(item){
+  item.addEventListener('click', function(){ navigate(item.dataset.page); });
+});
+
+function navigate(page){
+  currentPage = page;
+  $$('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var el = document.querySelector('.nav-item[data-page="'+page+'"]');
+  if(el) el.classList.add('active');
+  renderPage();
+}
+
+async function renderPage(){
+  switch(currentPage){
+    case 'dashboard': await renderDashboard(); break;
+    case 'invoices':  await renderInvoicesList('invoice'); break;
+    case 'quotes':    await renderInvoicesList('quote'); break;
+    case 'ledger':    await renderLedger(); break;
+    case 'reports':   await renderReports(); break;
+    case 'clients':   await renderClients(); break;
+    case 'settings':  await renderSettings(); break;
+  }
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+async function renderDashboard(){
+  $('#page-title').textContent = 'Dashboard';
+  $('#topbar-actions').innerHTML = '<div class="flex gap-2"><button class="btn btn-primary" onclick="openInvoiceForm(\'invoice\')">+ New Invoice</button><button class="btn btn-secondary" onclick="openInvoiceForm(\'quote\')">+ New Quote</button></div>';
+  var d = await api('/api/dashboard');
+  var recentHtml = '';
+  if(d.recent && d.recent.length){
+    recentHtml='<table><thead><tr><th>Number</th><th>Client</th><th>Type</th><th>Status</th><th class="text-right">Amount</th><th>Date</th></tr></thead><tbody>';
+    d.recent.forEach(function(inv){
+      recentHtml+='<tr class="clickable" onclick="viewInvoice(\''+inv.id+'\')">'
+        +'<td><strong>'+inv.invoice_number+'</strong></td><td>'+inv.client_name+'</td>'
+        +'<td>'+(inv.type==='invoice'?'Invoice':'Quote')+'</td>'
+        +'<td><span class="badge badge-'+inv.status+'">'+inv.status+'</span></td>'
+        +'<td class="text-right">'+formatNaira(inv.total)+'</td><td>'+inv.issue_date+'</td></tr>';
+    });
+    recentHtml+='</tbody></table>';
+  } else {
+    recentHtml='<div class="empty-state"><p>No invoices yet. Create your first invoice to get started!</p></div>';
+  }
+  $('#page-content').innerHTML='<div class="stats-grid">'
+    +'<div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value">'+d.total_invoices+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Total Quotes</div><div class="stat-value blue">'+d.total_quotes+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Amount Paid</div><div class="stat-value green">'+formatNaira(d.total_paid)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value red">'+formatNaira(d.total_outstanding)+'</div></div>'
+    +(d.overdue_count>0?'<div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value red">'+d.overdue_count+'</div></div>':'')
+    +'</div><div class="card"><div class="card-header"><h3>Recent Activity</h3></div>'+recentHtml+'</div>';
+}
+
+// ── Invoice / Quote list ───────────────────────────────────────────────────
+async function renderInvoicesList(type){
+  var label = type==='invoice'?'Invoices':'Quotes';
+  $('#page-title').textContent = label;
+  $('#topbar-actions').innerHTML = '<button class="btn btn-primary" onclick="openInvoiceForm(\''+type+'\')">+ New '+(type==='invoice'?'Invoice':'Quote')+'</button>';
+  var data = await api('/api/invoices?type='+type);
+  if(!data.length){
+    $('#page-content').innerHTML='<div class="card"><div class="empty-state"><p>No '+label.toLowerCase()+' yet.</p><button class="btn btn-primary" onclick="openInvoiceForm(\''+type+'\')">Create your first '+type+'</button></div></div>';
+    return;
+  }
+  var rows='';
+  data.forEach(function(inv){
+    var acts='<button class="btn btn-sm btn-secondary" onclick="viewInvoice(\''+inv.id+'\')">View</button>'
+      +'<button class="btn btn-sm btn-secondary" onclick="downloadPDF(\''+inv.id+'\')">PDF</button>';
+    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-primary" onclick="sendInvoice(\''+inv.id+'\')">Send</button>';
+    if(inv.status==='sent'||inv.status==='overdue') acts+='<button class="btn btn-sm btn-secondary" onclick="sendReminder(\''+inv.id+'\')">Remind</button>';
+    var payBadge = inv.payment_method ? ' <span class="badge badge-'+inv.payment_method+'">'+fmtPayMethod(inv.payment_method)+'</span>' : '';
+    rows+='<tr><td><strong>'+inv.invoice_number+'</strong></td><td>'+inv.client_name+'</td>'
+      +'<td><span class="badge badge-'+inv.status+'">'+inv.status+'</span>'+payBadge+'</td>'
+      +'<td class="text-right">'+formatNaira(inv.total)+'</td><td>'+inv.due_date+'</td>'
+      +'<td><div class="flex gap-2">'+acts+'</div></td></tr>';
+  });
+  $('#page-content').innerHTML='<div class="card"><table><thead><tr><th>Number</th><th>Client</th><th>Status</th><th class="text-right">Amount</th><th>Due Date</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ── Custom client picker ───────────────────────────────────────────────────
+function buildClientPicker(preselectedId){
+  _selectedClientId = preselectedId || '';
+  var menu = $('#client-picker-menu');
+  if(!menu) return;
+  var html='';
+  clients.forEach(function(c){
+    html+='<div class="client-option" onclick="selectClient(\''+c.id+'\',\''+encodeURIComponent(c.name||'')+'\',\''+encodeURIComponent(c.email||'')+'\',\''+encodeURIComponent(c.address||'')+'\')">'
+      +'<div class="co-name">'+c.name+'</div>'
+      +(c.email?'<div class="co-detail">'+c.email+'</div>':'')
+      +(c.company?'<div class="co-detail">'+c.company+'</div>':'')
+      +(c.address?'<div class="co-detail">'+c.address+'</div>':'')
+      +'</div>';
+  });
+  menu.innerHTML = html || '<div class="client-option"><div class="co-detail">No clients found</div></div>';
+  if(preselectedId){
+    var found = clients.find(function(c){ return c.id===preselectedId; });
+    if(found) updatePickerDisplay(found);
+  }
+}
+
+function toggleClientPicker(){
+  var menu = $('#client-picker-menu'), trigger = $('#client-picker-trigger');
+  var isOpen = menu.style.display==='block';
+  menu.style.display = isOpen ? 'none' : 'block';
+  if(trigger) trigger.classList.toggle('open', !isOpen);
+}
+
+function selectClient(id, name, email, address){
+  _selectedClientId = id;
+  var hiddenInput = $('#inv-client');
+  if(hiddenInput) hiddenInput.value = id;
+  var n=decodeURIComponent(name), e=decodeURIComponent(email), a=decodeURIComponent(address);
+  var disp = '<div style="line-height:1.6"><div style="font-weight:600;color:var(--gray-800);">'+n+'</div>';
+  if(e) disp += '<div style="font-size:12px;color:var(--gray-500);">'+e+'</div>';
+  if(a) disp += '<div style="font-size:12px;color:var(--gray-500);">'+a+'</div>';
+  disp += '</div>';
+  var span = $('#client-picker-display');
+  if(span){ span.innerHTML=disp; span.style.color=''; }
+  var menu=$('#client-picker-menu'), trigger=$('#client-picker-trigger');
+  if(menu) menu.style.display='none';
+  if(trigger) trigger.classList.remove('open');
+}
+
+function updatePickerDisplay(client){
+  selectClient(client.id, encodeURIComponent(client.name), encodeURIComponent(client.email), encodeURIComponent(client.address||''));
+}
+
+document.addEventListener('click', function(e){
+  var wrapper = document.getElementById('client-picker-wrapper');
+  var menu = document.getElementById('client-picker-menu');
+  if(wrapper && menu && !wrapper.contains(e.target)){
+    menu.style.display='none';
+    var trigger = document.getElementById('client-picker-trigger');
+    if(trigger) trigger.classList.remove('open');
+  }
+});
+
+// ── Currency ───────────────────────────────────────────────────────────────
+function setCurrency(cur){
+  currentInvoiceCurrency = cur;
+  $$('.currency-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.cur===cur); });
+  recalcTotals();
+}
+
+// ── Invoice form ───────────────────────────────────────────────────────────
+async function openInvoiceForm(type, editId){
+  clients = await api('/api/clients');
+  if(!clients.length){ toast('Please add a client first','error'); navigate('clients'); return; }
+  settings = await api('/api/settings');
+
+  var inv=null, items=[{description:'',quantity:1,unit_price:0}];
+  if(editId){
+    inv = await api('/api/invoices/'+editId);
+    items = inv.items.length ? inv.items : items;
+  }
+  currentInvoiceCurrency = (inv && inv.currency) || 'NGN';
+
+  var today=new Date().toISOString().split('T')[0];
+  var due=new Date(Date.now()+30*86400000).toISOString().split('T')[0];
+  var label=type==='invoice'?'Invoice':'Quote';
+
+  var logoSrc = settings.company_logo ? '/uploads/'+settings.company_logo : '';
+  var brandHtml='';
+  if(logoSrc||settings.company_name){
+    brandHtml='<div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200);margin-bottom:20px;">';
+    if(logoSrc) brandHtml+='<img src="'+logoSrc+'" style="max-height:50px;max-width:120px;object-fit:contain;" />';
+    brandHtml+='<div>';
+    if(settings.company_name) brandHtml+='<div style="font-size:16px;font-weight:700;">'+settings.company_name+'</div>';
+    if(settings.company_email) brandHtml+='<div style="font-size:12px;color:var(--gray-500);">'+settings.company_email+'</div>';
+    brandHtml+='</div></div>';
+  }
+
+  var itemsHtml=''; items.forEach(function(it,i){ itemsHtml+=lineItemRow(it,i); });
+
+  var freqOpts=[{v:'3',l:'Every 3 days'},{v:'7',l:'Every 7 days'},{v:'14',l:'Every 14 days'},{v:'30',l:'Every 30 days'},{v:'custom',l:'Custom'}];
+  var freqSel=freqOpts.map(function(o){ var s=(inv&&inv.reminder_frequency_days==o.v)||(!inv&&o.v==='7')?'selected':''; return '<option value="'+o.v+'" '+s+'>'+o.l+'</option>'; }).join('');
+  var maxSel=[1,2,3,5].map(function(n){ var s=(inv&&inv.reminder_max_count==n)||(!inv&&n===3)?'selected':''; return '<option value="'+n+'" '+s+'>'+n+' reminder'+(n>1?'s':'')+'</option>'; }).join('');
+
+  openModal((editId?'Edit':'New')+' '+label,
+    brandHtml+
+    '<div class="form-row" style="margin-bottom:0">'
+      +'<div class="form-group"><label class="form-label">Client *</label>'
+        +'<div class="client-picker" id="client-picker-wrapper">'
+          +'<div class="client-picker-trigger" id="client-picker-trigger" onclick="toggleClientPicker()">'
+            +'<span id="client-picker-display" style="color:var(--gray-400);">Select a client...</span>'
+            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'
+          +'</div>'
+          +'<div class="client-picker-menu" id="client-picker-menu"></div>'
+        +'</div>'
+        +'<input type="hidden" id="inv-client" value="'+((inv&&inv.client_id)||'')+'">'
+      +'</div>'
+      +'<div class="form-group"><label class="form-label">Currency</label>'
+        +'<div class="currency-toggle">'
+          +'<button class="currency-btn'+(currentInvoiceCurrency==='NGN'?' active':'')+'" data-cur="NGN" onclick="setCurrency(\'NGN\')">₦ NGN</button>'
+          +'<button class="currency-btn'+(currentInvoiceCurrency==='USD'?' active':'')+'" data-cur="USD" onclick="setCurrency(\'USD\')">$ USD</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Issue Date *</label><input class="form-input" id="inv-issue" type="date" value="'+(inv?inv.issue_date:today)+'"></div>'
+      +'<div class="form-group"><label class="form-label">Due Date *</label><input class="form-input" id="inv-due" type="date" value="'+(inv?inv.due_date:due)+'"></div>'
+    +'</div>'
+    +'<div class="form-group"><label class="form-label">Discount (%)</label><input class="form-input" id="inv-discount" type="number" min="0" max="100" step="0.5" value="'+(inv?inv.discount_percent:0)+'" oninput="recalcTotals()"></div>'
+    +'<h4 style="margin:20px 0 10px;font-size:14px;">Line Items</h4>'
+    +'<div class="line-items"><div class="line-item line-item-header"><span>Description</span><span>Qty</span><span>Unit Price</span><span>Amount</span><span></span></div>'
+    +'<div id="items-list">'+itemsHtml+'</div></div>'
+    +'<button class="btn btn-secondary btn-sm" onclick="addLineItem()">+ Add Item</button>'
+    +'<div class="totals" id="totals-section">'
+      +'<div class="totals-row"><span>Subtotal</span><span id="t-subtotal">'+formatAmount(0)+'</span></div>'
+      +'<div class="totals-row"><span>Discount</span><span id="t-discount">'+formatAmount(0)+'</span></div>'
+      +'<div class="totals-row"><span>VAT (7.5%)</span><span id="t-vat">'+formatAmount(0)+'</span></div>'
+      +'<div class="totals-row total"><span>Total</span><span id="t-total">'+formatAmount(0)+'</span></div>'
+    +'</div>'
+    +'<div class="form-group mt-4"><label class="form-label">Notes</label><textarea class="form-textarea" id="inv-notes" rows="2" placeholder="Any notes for the client...">'+(inv?inv.notes:'')+'</textarea></div>'
+    +'<div class="form-group"><label class="form-label">Terms &amp; Conditions</label><textarea class="form-textarea" id="inv-terms" rows="2">'+(inv?(inv.terms||''):'Payment is due within 30 days of invoice date.')+'</textarea></div>'
+    +'<div class="reminder-box"><h4><label class="toggle"><input type="checkbox" id="inv-reminder"'+(inv&&inv.reminder_enabled?' checked':'')+' onchange="toggleReminderOpts()"><span class="toggle-slider"></span></label> Email Reminders</h4>'
+    +'<div id="reminder-opts" style="display:'+(inv&&inv.reminder_enabled?'block':'none')+'">'
+      +'<div class="form-row"><div class="form-group"><label class="form-label">Frequency</label><select class="form-select" id="inv-freq">'+freqSel+'</select></div>'
+      +'<div class="form-group"><label class="form-label">Max Reminders</label><select class="form-select" id="inv-max-rem">'+maxSel+'</select></div></div>'
+      +'<div class="form-group" id="custom-freq-group" style="display:none"><label class="form-label">Custom days</label><input class="form-input" id="inv-custom-freq" type="number" min="1" max="90" value="7"></div>'
+    +'</div></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>'
+    +'<button class="btn btn-primary" onclick="saveInvoice(\''+type+'\',\''+(editId||'')+'\')">'+( editId?'Update':'Create')+' '+label+'</button>'
+  );
+
+  buildClientPicker(inv ? inv.client_id : '');
+  var freqEl=$('#inv-freq');
+  if(freqEl) freqEl.addEventListener('change',function(){ $('#custom-freq-group').style.display=this.value==='custom'?'block':'none'; });
+  setTimeout(recalcTotals, 80);
+}
+
+function lineItemRow(item, idx){
+  return '<div class="line-item" data-idx="'+idx+'">'
+    +'<input class="form-input" placeholder="Description" value="'+(item.description||'')+'" oninput="recalcTotals()">'
+    +'<input class="form-input" type="number" min="0" step="1" value="'+(item.quantity||1)+'" oninput="recalcTotals()">'
+    +'<input class="form-input" type="number" min="0" step="100" value="'+(item.unit_price||0)+'" oninput="recalcTotals()">'
+    +'<span style="padding:8px;font-weight:500;">'+formatAmount((item.quantity||1)*(item.unit_price||0))+'</span>'
+    +'<button class="remove-item" onclick="removeLineItem(this)">&times;</button></div>';
+}
+function addLineItem(){
+  var list=$('#items-list'), d=document.createElement('div');
+  d.innerHTML=lineItemRow({description:'',quantity:1,unit_price:0},list.children.length);
+  list.appendChild(d.firstElementChild);
+}
+function removeLineItem(btn){
+  var list=$('#items-list');
+  if(list.children.length>1){ btn.closest('.line-item').remove(); recalcTotals(); }
+}
+function getLineItems(){
+  return Array.from($$('#items-list .line-item')).map(function(row){
+    var ins=row.querySelectorAll('input');
+    return {description:ins[0].value, quantity:parseFloat(ins[1].value)||0, unit_price:parseFloat(ins[2].value)||0};
+  });
+}
+function recalcTotals(){
+  var items=getLineItems(), disc=parseFloat($('#inv-discount')&&$('#inv-discount').value)||0;
+  var sub=items.reduce(function(s,i){return s+i.quantity*i.unit_price;},0);
+  var discAmt=sub*(disc/100), taxable=sub-discAmt, vat=taxable*0.075, total=taxable+vat;
+  $$('#items-list .line-item').forEach(function(row,i){
+    var span=row.querySelector('span');
+    if(span && items[i]) span.textContent=formatAmount(items[i].quantity*items[i].unit_price);
+  });
+  if($('#t-subtotal')){
+    $('#t-subtotal').textContent=formatAmount(sub);
+    $('#t-discount').textContent='-'+formatAmount(discAmt);
+    $('#t-vat').textContent=formatAmount(vat);
+    $('#t-total').textContent=formatAmount(total);
+  }
+}
+function toggleReminderOpts(){ $('#reminder-opts').style.display=$('#inv-reminder').checked?'block':'none'; }
+
+async function saveInvoice(type, editId){
+  var clientId = $('#inv-client').value || _selectedClientId;
+  if(!clientId){ toast('Please select a client','error'); return; }
+  var items=getLineItems().filter(function(i){return i.description;});
+  if(!items.length){ toast('Add at least one line item','error'); return; }
+  var freq=parseInt($('#inv-freq').value)||7;
+  if($('#inv-freq').value==='custom') freq=parseInt($('#inv-custom-freq').value)||7;
+  var body={type, client_id:clientId, issue_date:$('#inv-issue').value, due_date:$('#inv-due').value,
+    discount_percent:parseFloat($('#inv-discount').value)||0, items,
+    notes:$('#inv-notes').value, terms:$('#inv-terms').value,
+    currency:currentInvoiceCurrency,
+    reminder_enabled:$('#inv-reminder').checked,
+    reminder_frequency_days:freq, reminder_max_count:parseInt($('#inv-max-rem').value)||3};
+  if(editId){
+    await api('/api/invoices/'+editId,{method:'PUT',body});
+    toast((type==='invoice'?'Invoice':'Quote')+' updated');
+  } else {
+    var res=await api('/api/invoices',{method:'POST',body});
+    toast((type==='invoice'?'Invoice':'Quote')+' #'+res.invoice_number+' created');
+  }
+  closeModal(); renderPage();
+}
+
+// ── View Invoice ───────────────────────────────────────────────────────────
+async function viewInvoice(id){
+  var inv=await api('/api/invoices/'+id);
+  var emails=await api('/api/invoices/'+id+'/emails');
+  var label=inv.type==='invoice'?'Invoice':'Quote';
+  var acts='';
+  if(inv.type==='invoice'){
+    if(inv.status!=='paid') acts+='<button class="btn btn-sm btn-primary" onclick="openPaymentModal(\''+id+'\')">Mark Paid</button>';
+    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\''+id+'\')">Send</button>';
+    if(inv.status==='sent'||inv.status==='overdue') acts+='<button class="btn btn-sm btn-secondary" onclick="sendReminder(\''+id+'\')">Remind</button>';
+  } else {
+    if(inv.status!=='accepted') acts+='<button class="btn btn-sm btn-primary" onclick="updateStatus(\''+id+'\',\'accepted\')">Mark Accepted</button>';
+    if(inv.status!=='declined') acts+='<button class="btn btn-sm btn-danger" onclick="updateStatus(\''+id+'\',\'declined\')">Mark Declined</button>';
+    if(inv.status==='draft') acts+='<button class="btn btn-sm btn-secondary" onclick="sendInvoice(\''+id+'\')">Send</button>';
+  }
+  var payInfo='';
+  if(inv.payment_method) payInfo='<span class="badge badge-'+inv.payment_method+'">'+fmtPayMethod(inv.payment_method)+'</span>'+(inv.payment_date?' <span style="font-size:12px;color:var(--gray-500);">'+inv.payment_date+'</span>':'');
+  var emailHtml=emails.length?'<table><thead><tr><th>Date</th><th>To</th><th>Subject</th><th>Type</th></tr></thead><tbody>'
+    +emails.map(function(e){return '<tr><td>'+e.sent_at+'</td><td>'+e.recipient+'</td><td>'+e.subject+'</td><td>'+e.type+'</td></tr>';}).join('')+'</tbody></table>'
+    :'<div class="empty-state"><p>No emails sent yet.</p></div>';
+  openModal(label+' '+inv.invoice_number,
+    '<div class="flex gap-2 mb-4 items-center" style="flex-wrap:wrap">'
+      +'<span class="badge badge-'+inv.status+'">'+inv.status+'</span> '+payInfo+' '+acts
+      +'<button class="btn btn-sm btn-secondary" onclick="openInvoiceForm(\''+inv.type+'\',\''+id+'\')">Edit</button>'
+      +'<button class="btn btn-sm btn-secondary" onclick="downloadPDF(\''+id+'\')">PDF</button>'
+      +'<button class="btn btn-sm btn-danger" onclick="deleteInvoice(\''+id+'\')">Delete</button>'
+    +'</div>'
+    +'<div class="tabs">'
+      +'<button class="tab active" onclick="switchViewTab(this,\'preview-tab\')">Preview</button>'
+      +'<button class="tab" onclick="switchViewTab(this,\'emails-tab\')">Email History ('+emails.length+')</button>'
+    +'</div>'
+    +'<div id="preview-tab"><iframe class="preview-frame" src="/api/invoices/'+id+'/preview"></iframe></div>'
+    +'<div id="emails-tab" style="display:none">'+emailHtml+'</div>', '');
+  $('#modal').style.maxWidth='900px';
+}
+
+function switchViewTab(btn, tabId){
+  btn.parentElement.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  var p=btn.closest('.modal-body');
+  p.querySelectorAll('[id$="-tab"]').forEach(function(t){t.style.display='none';});
+  p.querySelector('#'+tabId).style.display='block';
+}
+
+function downloadPDF(id){
+  var w=window.open('/api/invoices/'+id+'/preview','_blank');
+  w.addEventListener('load',function(){
+    var s=w.document.createElement('style');
+    s.textContent='@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}@page{margin:10mm;size:A4;}';
+    w.document.head.appendChild(s); setTimeout(function(){w.print();},300);
+  });
+}
+
+async function sendInvoice(id){
+  if(!confirm('Send this invoice to the client via email?')) return;
+  var res=await api('/api/invoices/'+id+'/send',{method:'POST'});
+  if(res.success){toast('Invoice sent!');closeModal();renderPage();}
+  else toast(res.error||'Failed to send','error');
+}
+async function sendReminder(id){
+  if(!confirm('Send a payment reminder?')) return;
+  var res=await api('/api/invoices/'+id+'/remind',{method:'POST'});
+  if(res.success){toast('Reminder sent!');closeModal();renderPage();}
+  else toast(res.error||'Failed','error');
+}
+
+function openPaymentModal(id){
+  var today=new Date().toISOString().split('T')[0];
+  openModal('Record Payment',
+    '<p style="margin-bottom:16px;color:var(--gray-600);font-size:14px;">How was this invoice paid?</p>'
+    +'<div class="form-group"><label class="form-label">Payment Method *</label>'
+    +'<select class="form-select" id="pay-method"><option value="bank_transfer">Bank Transfer</option><option value="cash">Cash</option><option value="cheque">Cheque</option></select></div>'
+    +'<div class="form-group"><label class="form-label">Payment Date *</label><input class="form-input" id="pay-date" type="date" value="'+today+'"></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>'
+    +'<button class="btn btn-primary" onclick="confirmPayment(\''+id+'\')">Confirm Payment</button>');
+}
+async function confirmPayment(id){
+  var method=$('#pay-method').value, date=$('#pay-date').value;
+  if(!method||!date){toast('Fill in all fields','error');return;}
+  await api('/api/invoices/'+id+'/status',{method:'PUT',body:{status:'paid',payment_method:method,payment_date:date}});
+  toast('Payment recorded');closeModal();renderPage();
+}
+async function updateStatus(id, status){
+  await api('/api/invoices/'+id+'/status',{method:'PUT',body:{status}});
+  toast('Status updated to '+status);closeModal();renderPage();
+}
+async function deleteInvoice(id){
+  if(!confirm('Delete this invoice? Cannot be undone.')) return;
+  await api('/api/invoices/'+id,{method:'DELETE'});
+  toast('Deleted');closeModal();renderPage();
+}
+
+// ── Clients ────────────────────────────────────────────────────────────────
+async function renderClients(){
+  $('#page-title').textContent='Clients';
+  $('#topbar-actions').innerHTML='<button class="btn btn-primary" onclick="openClientForm()">+ Add Client</button>';
+  clients=await api('/api/clients');
+  if(!clients.length){
+    $('#page-content').innerHTML='<div class="card"><div class="empty-state"><p>No clients yet.</p><button class="btn btn-primary" onclick="openClientForm()">Add Client</button></div></div>';
+    return;
+  }
+  var rows=clients.map(function(c){
+    return '<tr><td><strong>'+c.name+'</strong></td><td>'+(c.company||'-')+'</td><td>'+c.email+'</td><td>'+(c.phone||'-')+'</td><td>'+(c.address||'-')+'</td>'
+      +'<td><div class="flex gap-2"><button class="btn btn-sm btn-secondary" onclick="openClientForm(\''+c.id+'\')">Edit</button>'
+      +'<button class="btn btn-sm btn-danger" onclick="deleteClient(\''+c.id+'\')">Delete</button></div></td></tr>';
+  }).join('');
+  $('#page-content').innerHTML='<div class="card"><table><thead><tr><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Address</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function openClientForm(editId){
+  var c=editId?clients.find(function(x){return x.id===editId;}):{}; c=c||{};
+  openModal(editId?'Edit Client':'Add Client',
+    '<div class="form-row"><div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="c-name" value="'+(c.name||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="c-email" type="email" value="'+(c.email||'')+'"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Company</label><input class="form-input" id="c-company" value="'+(c.company||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="c-phone" value="'+(c.phone||'')+'"></div></div>'
+    +'<div class="form-group"><label class="form-label">Address</label><input class="form-input" id="c-address" value="'+(c.address||'')+'"></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Cancel</button>'
+    +'<button class="btn btn-primary" onclick="saveClient(\''+(editId||'')+'\')">'+(editId?'Update':'Save')+' Client</button>');
+}
+async function saveClient(editId){
+  var data={name:$('#c-name').value, email:$('#c-email').value, company:$('#c-company').value, phone:$('#c-phone').value, address:$('#c-address').value};
+  if(!data.name||!data.email){toast('Name and email required','error');return;}
+  if(editId) await api('/api/clients/'+editId,{method:'PUT',body:data}); else await api('/api/clients',{method:'POST',body:data});
+  toast(editId?'Client updated':'Client added'); closeModal(); renderPage();
+}
+async function deleteClient(id){
+  if(!confirm('Delete this client?')) return;
+  await api('/api/clients/'+id,{method:'DELETE'}); toast('Client deleted'); renderPage();
+}
+
+// ── Ledger ─────────────────────────────────────────────────────────────────
+async function renderLedger(){
+  $('#page-title').textContent='Ledger'; $('#topbar-actions').innerHTML='';
+  var data=await api('/api/ledger');
+  if(!data.length){
+    $('#page-content').innerHTML='<div class="card"><div class="empty-state"><p>No ledger entries yet.</p><button class="btn btn-primary" onclick="openInvoiceForm(\'invoice\')">Create Invoice</button></div></div>';
+    return;
+  }
+  var html=data.map(function(c){
+    var rows=(c.invoices||[]).map(function(inv){
+      var pb=inv.payment_method?'<span class="badge badge-'+inv.payment_method+'">'+fmtPayMethod(inv.payment_method)+'</span>':'';
+      return '<tr class="clickable" onclick="viewInvoice(\''+inv.id+'\')">'
+        +'<td>'+inv.invoice_number+'</td><td><span class="badge badge-'+inv.status+'">'+inv.status+'</span></td>'
+        +'<td class="text-right">'+formatNaira(inv.total)+'</td>'
+        +'<td class="text-right">'+(inv.status==='paid'?formatNaira(inv.total):formatNaira(0))+'</td>'
+        +'<td>'+pb+'</td><td>'+inv.issue_date+'</td></tr>';
+    }).join('');
+    return '<div class="ledger-card">'
+      +'<div class="ledger-card-header" onclick="toggleLedgerCard(this)">'
+        +'<h4>'+c.name+(c.company?' ('+c.company+')':'')+'</h4>'
+        +'<div class="ledger-summary">'
+          +'<div class="ledger-summary-item"><div class="label">Total Sent</div><div class="value">'+formatNaira(c.total_invoiced)+'</div></div>'
+          +'<div class="ledger-summary-item"><div class="label">Paid</div><div class="value" style="color:var(--green)">'+formatNaira(c.total_paid)+'</div></div>'
+          +'<div class="ledger-summary-item"><div class="label">Pending</div><div class="value" style="color:var(--red)">'+formatNaira(c.total_pending)+'</div></div>'
+        +'</div></div>'
+      +'<div class="ledger-card-body" style="display:none"><table><thead><tr><th>Invoice #</th><th>Status</th><th class="text-right">Amount</th><th class="text-right">Paid</th><th>Method</th><th>Date</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+      +'</div>';
+  }).join('');
+  $('#page-content').innerHTML=html;
+}
+function toggleLedgerCard(hdr){ var b=hdr.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; }
+
+// ── Reports ────────────────────────────────────────────────────────────────
+async function renderReports(){
+  $('#page-title').textContent='Reports'; $('#topbar-actions').innerHTML='';
+  $('#page-content').innerHTML=
+    '<div class="tabs"><button class="tab active" onclick="switchReportTab(this,\'pnl\')">Profit &amp; Loss</button>'
+    +'<button class="tab" onclick="switchReportTab(this,\'balance\')">Balance Sheet</button>'
+    +'<button class="tab" onclick="switchReportTab(this,\'cashflow\')">Cash Flow</button>'
+    +'<button class="tab" onclick="switchReportTab(this,\'tax\')">Tax Report</button></div>'
+    +'<div class="filter-bar"><label>From:</label><input class="form-input" id="report-from" type="date" style="width:160px">'
+    +'<label>To:</label><input class="form-input" id="report-to" type="date" style="width:160px">'
+    +'<button class="btn btn-primary btn-sm" onclick="loadReport()">Apply</button></div>'
+    +'<div id="report-content"></div>';
+  var now=new Date();
+  $('#report-from').value=now.getFullYear()+'-01-01';
+  $('#report-to').value=now.toISOString().split('T')[0];
+  currentReportTab='pnl'; loadReport();
+}
+function switchReportTab(btn, tab){
+  btn.parentElement.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active'); currentReportTab=tab; loadReport();
+}
+async function loadReport(){
+  var f=$('#report-from').value, t=$('#report-to').value;
+  var qs='?start_date='+f+'&end_date='+t, el=$('#report-content');
+  if(currentReportTab==='pnl') await loadPnl(el,qs);
+  else if(currentReportTab==='balance') await loadBalance(el,qs);
+  else if(currentReportTab==='cashflow') await loadCashflow(el,qs);
+  else await loadTax(el,qs);
+}
+
+async function loadPnl(el,qs){
+  var d=await api('/api/reports/pnl'+qs);
+  el.innerHTML='<div class="card"><div class="card-header"><h3>Profit &amp; Loss Statement</h3></div><div class="card-body"><table class="report-table">'
+    +'<thead><tr><th>Category</th><th class="text-right">Amount</th></tr></thead><tbody>'
+    +'<tr><td><strong>Revenue</strong></td><td></td></tr>'
+    +'<tr><td class="indent">Total Invoiced (incl. VAT)</td><td class="text-right">'+formatNaira(d.total_revenue)+'</td></tr>'
+    +'<tr class="subtotal-row"><td>Gross Revenue</td><td class="text-right">'+formatNaira(d.total_revenue)+'</td></tr>'
+    +'<tr><td><strong>Deductions</strong></td><td></td></tr>'
+    +'<tr><td class="indent">VAT Collected (7.5%)</td><td class="text-right">('+formatNaira(d.total_vat)+')</td></tr>'
+    +'<tr><td class="indent">Discounts Given</td><td class="text-right">('+formatNaira(d.total_discounts)+')</td></tr>'
+    +'<tr class="total-row"><td>Net Income</td><td class="text-right">'+formatNaira(d.net_income)+'</td></tr>'
+    +'</tbody></table><p style="margin-top:12px;font-size:12px;color:var(--gray-400)">Based on '+d.invoice_count+' invoice(s)</p></div></div>';
+}
+
+async function loadBalance(el,qs){
+  var d=await api('/api/reports/balance'+qs);
+  el.innerHTML='<div class="card"><div class="card-header"><h3>Balance Sheet</h3></div><div class="card-body"><table class="report-table">'
+    +'<thead><tr><th>Category</th><th class="text-right">Amount</th></tr></thead><tbody>'
+    +'<tr><td><strong>Assets</strong></td><td></td></tr>'
+    +'<tr><td class="indent">Cash Received</td><td class="text-right">'+formatNaira(d.total_paid)+'</td></tr>'
+    +'<tr><td class="indent">Accounts Receivable</td><td class="text-right">'+formatNaira(d.accounts_receivable)+'</td></tr>'
+    +'<tr class="subtotal-row"><td>Total Assets</td><td class="text-right">'+formatNaira(d.total_assets)+'</td></tr>'
+    +'<tr><td><strong>Liabilities</strong></td><td></td></tr>'
+    +'<tr><td class="indent">VAT Payable to FIRS</td><td class="text-right">'+formatNaira(d.vat_payable)+'</td></tr>'
+    +'<tr class="subtotal-row"><td>Total Liabilities</td><td class="text-right">'+formatNaira(d.vat_payable)+'</td></tr>'
+    +'<tr class="total-row"><td>Equity (Assets − Liabilities)</td><td class="text-right">'+formatNaira(d.equity)+'</td></tr>'
+    +'</tbody></table></div></div>';
+}
+
+async function loadCashflow(el,qs){
+  var d=await api('/api/reports/cashflow'+qs);
+  var mRows=(d.monthly||[]).map(function(m){return '<tr><td class="indent">'+m.month+'</td><td class="text-right">'+formatNaira(m.received)+'</td></tr>';}).join('');
+  var mthRows=mRows||'<tr><td class="indent" colspan="2" style="color:var(--gray-400)">No payments in this period</td></tr>';
+  var pmRows=(d.by_method||[]).map(function(m){return '<tr><td class="indent">'+fmtPayMethod(m.method)+'</td><td class="text-right">'+formatNaira(m.amount)+'</td></tr>';}).join('');
+  el.innerHTML='<div class="card"><div class="card-header"><h3>Cash Flow Statement</h3></div><div class="card-body"><table class="report-table">'
+    +'<thead><tr><th>Category</th><th class="text-right">Amount</th></tr></thead><tbody>'
+    +'<tr><td><strong>Cash Received</strong></td><td class="text-right">'+formatNaira(d.total_received)+'</td></tr>'
+    +'<tr><td><strong>Monthly Breakdown</strong></td><td></td></tr>'+mthRows
+    +(pmRows?'<tr><td><strong>By Payment Method</strong></td><td></td></tr>'+pmRows:'')
+    +'<tr><td><strong>Outstanding</strong></td><td class="text-right">'+formatNaira(d.outstanding)+'</td></tr>'
+    +'<tr class="total-row"><td>Net Cash Position</td><td class="text-right">'+formatNaira(d.total_received)+'</td></tr>'
+    +'</tbody></table></div></div>';
+}
+
+async function loadTax(el,qs){
+  var d=await api('/api/reports/tax'+qs);
+  var rows=(d.details||[]).map(function(r){
+    return '<tr><td>'+r.invoice_number+'</td><td>'+r.client_name+'</td><td>'+r.issue_date+'</td>'
+      +'<td class="text-right">'+formatNaira(r.subtotal)+'</td><td class="text-right">'+formatNaira(r.vat_amount)+'</td>'
+      +'<td class="text-right">'+formatNaira(r.total)+'</td><td><span class="badge badge-'+r.status+'">'+r.status+'</span></td></tr>';
+  }).join('');
+  el.innerHTML='<div class="card"><div class="card-header"><h3>VAT / Sales Tax Report</h3></div><div class="card-body">'
+    +'<div class="stats-grid" style="margin-bottom:20px">'
+    +'<div class="stat-card"><div class="stat-label">Total Taxable</div><div class="stat-value">'+formatNaira(d.total_taxable)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Total VAT</div><div class="stat-value purple">'+formatNaira(d.total_vat)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">VAT Collected</div><div class="stat-value green">'+formatNaira(d.vat_collected)+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">VAT Pending</div><div class="stat-value red">'+formatNaira(d.vat_pending)+'</div></div>'
+    +'</div>'
+    +(rows?'<table class="report-table"><thead><tr><th>Invoice #</th><th>Client</th><th>Date</th><th class="text-right">Subtotal</th><th class="text-right">VAT</th><th class="text-right">Total</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    :'<div class="empty-state"><p>No invoices in this period.</p></div>')
+    +'</div></div>';
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+async function renderSettings(){
+  $('#page-title').textContent='Settings'; $('#topbar-actions').innerHTML='';
+  settings=await api('/api/settings');
+  var logoSrc=settings.company_logo?'/uploads/'+settings.company_logo:'';
+
+  $('#page-content').innerHTML=
+    '<div class="tabs">'
+    +'<button class="tab active" onclick="switchSettingsTab(this,\'tab-company\')">Company</button>'
+    +'<button class="tab" onclick="switchSettingsTab(this,\'tab-bank\')">Bank Details</button>'
+    +'<button class="tab" onclick="switchSettingsTab(this,\'tab-email\')">Email (SMTP)</button>'
+    +'<button class="tab" onclick="switchSettingsTab(this,\'tab-account\')">Account</button>'
+    +'</div>'
+
+    +'<div id="tab-company" class="card"><div class="card-body">'
+    +'<div class="form-group"><label class="form-label">Company Logo</label>'
+    +'<div class="logo-upload" id="logo-upload" onclick="document.getElementById(\'logo-file\').click()">'
+    +(logoSrc?'<img src="'+logoSrc+'" /><br>':'')+'<p>'+(logoSrc?'Click to change logo':'Click or drag to upload your logo')+'</p>'
+    +'<input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(this)"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="s-name" value="'+(settings.company_name||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="s-email" value="'+(settings.company_email||'')+'"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="s-phone" value="'+(settings.company_phone||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Address</label><input class="form-input" id="s-address" value="'+(settings.company_address||'')+'"></div></div>'
+    +'<div class="form-group"><label class="form-label">Tax Identification Number (TIN)</label>'
+    +'<input class="form-input" id="s-tin" value="'+(settings.tax_number||'')+'" placeholder="e.g. 1234567-0001" style="max-width:280px"></div>'
+    +'<button class="btn btn-primary mt-4" onclick="saveSettings(\'company\')">Save Company Info</button>'
+    +'</div></div>'
+
+    +'<div id="tab-bank" class="card" style="display:none"><div class="card-body">'
+    +'<p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">Bank details appear on every invoice as payment instructions.</p>'
+    +'<div class="form-row-3"><div class="form-group"><label class="form-label">Bank Name</label><input class="form-input" id="s-bank" value="'+(settings.bank_name||'')+'" placeholder="e.g. GTBank"></div>'
+    +'<div class="form-group"><label class="form-label">Account Name</label><input class="form-input" id="s-accname" value="'+(settings.account_name||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Account Number</label><input class="form-input" id="s-accnum" value="'+(settings.account_number||'')+'"></div></div>'
+    +'<button class="btn btn-primary mt-4" onclick="saveSettings(\'bank\')">Save Bank Details</button>'
+    +'</div></div>'
+
+    +'<div id="tab-email" class="card" style="display:none"><div class="card-body">'
+    +'<p style="color:var(--gray-500);font-size:13px;margin-bottom:16px;">For Gmail: host=smtp.gmail.com, port=587, use an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a>.</p>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">SMTP Host</label><input class="form-input" id="s-smtp-host" value="'+(settings.smtp_host||'')+'" placeholder="smtp.gmail.com"></div>'
+    +'<div class="form-group"><label class="form-label">Port</label><input class="form-input" id="s-smtp-port" type="number" value="'+(settings.smtp_port||587)+'"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Username / Email</label><input class="form-input" id="s-smtp-user" value="'+(settings.smtp_user||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Password</label><input class="form-input" id="s-smtp-pass" type="password" placeholder="Enter SMTP password"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">From Name</label><input class="form-input" id="s-smtp-fname" value="'+(settings.smtp_from_name||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">From Email</label><input class="form-input" id="s-smtp-femail" value="'+(settings.smtp_from_email||'')+'"></div></div>'
+    +'<button class="btn btn-primary mt-4" onclick="saveSettings(\'email\')">Save Email Settings</button>'
+    +'</div></div>'
+
+    +'<div id="tab-account" class="card" style="display:none"><div class="card-body">'
+    +'<h4 style="margin-bottom:16px;font-size:15px;">Profile</h4>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Your Name</label><input class="form-input" id="acc-name" value="'+(currentUser&&currentUser.name?currentUser.name:'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="acc-email" type="email" value="'+(currentUser&&currentUser.email?currentUser.email:'')+'"></div></div>'
+    +'<button class="btn btn-primary" onclick="saveProfile()">Update Profile</button>'
+    +'<hr style="margin:24px 0;border-color:var(--gray-200)">'
+    +'<h4 style="margin-bottom:16px;font-size:15px;">Change Password</h4>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Current Password</label><input class="form-input" id="acc-cur-pass" type="password"></div>'
+    +'<div class="form-group"><label class="form-label">New Password</label><input class="form-input" id="acc-new-pass" type="password" placeholder="Min 6 characters"></div></div>'
+    +'<div id="acc-err" style="color:var(--red);font-size:13px;margin-bottom:8px"></div>'
+    +'<button class="btn btn-secondary" onclick="changePassword()">Change Password</button>'
+    +'</div></div>';
+
+  var uploadArea=document.getElementById('logo-upload');
+  if(uploadArea){
+    uploadArea.addEventListener('dragover',function(e){e.preventDefault();uploadArea.style.borderColor='var(--green)';});
+    uploadArea.addEventListener('dragleave',function(){uploadArea.style.borderColor='var(--gray-300)';});
+    uploadArea.addEventListener('drop',function(e){e.preventDefault();uploadArea.style.borderColor='var(--gray-300)';if(e.dataTransfer.files.length)uploadLogoFile(e.dataTransfer.files[0]);});
+  }
+}
+
+function switchSettingsTab(btn, tabId){
+  btn.parentElement.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  ['tab-company','tab-bank','tab-email','tab-account'].forEach(function(id){
+    document.getElementById(id).style.display=id===tabId?'block':'none';
+  });
+}
+
+async function saveSettings(section){
+  var body={};
+  if(section==='company') body={company_name:$('#s-name').value, company_email:$('#s-email').value, company_phone:$('#s-phone').value, company_address:$('#s-address').value, tax_number:$('#s-tin').value};
+  else if(section==='bank') body={bank_name:$('#s-bank').value, account_name:$('#s-accname').value, account_number:$('#s-accnum').value};
+  else if(section==='email'){
+    body={smtp_host:$('#s-smtp-host').value, smtp_port:parseInt($('#s-smtp-port').value), smtp_user:$('#s-smtp-user').value, smtp_from_name:$('#s-smtp-fname').value, smtp_from_email:$('#s-smtp-femail').value};
+    var p=$('#s-smtp-pass').value; if(p) body.smtp_password=p;
+  }
+  await api('/api/settings',{method:'POST',body});
+  toast('Settings saved');
+}
+
+async function saveProfile(){
+  var res=await api('/api/auth/profile',{method:'PUT',body:{name:$('#acc-name').value, email:$('#acc-email').value}});
+  if(res.success){toast('Profile updated');if(currentUser){currentUser.name=$('#acc-name').value;currentUser.email=$('#acc-email').value;$('#user-display-name').textContent=currentUser.name||currentUser.email;}}
+  else toast(res.error||'Failed','error');
+}
+async function changePassword(){
+  var cur=$('#acc-cur-pass').value, nw=$('#acc-new-pass').value;
+  $('#acc-err').textContent='';
+  if(!cur||!nw){$('#acc-err').textContent='Fill in both password fields';return;}
+  if(nw.length<6){$('#acc-err').textContent='New password must be at least 6 characters';return;}
+  var res=await api('/api/auth/profile',{method:'PUT',body:{current_password:cur,new_password:nw}});
+  if(res.success){toast('Password changed');$('#acc-cur-pass').value='';$('#acc-new-pass').value='';}
+  else $('#acc-err').textContent=res.error||'Failed';
+}
+
+function uploadLogo(input){ if(input.files.length) uploadLogoFile(input.files[0]); }
+async function uploadLogoFile(file){
+  var fd=new FormData(); fd.append('logo',file);
+  var res=await fetch('/api/settings/logo',{method:'POST',body:fd,credentials:'same-origin'});
+  var d=await res.json();
+  if(d.success){toast('Logo uploaded');renderSettings();}else toast('Upload failed','error');
 }
 
 // Init
-renderPage();
+init();
 </script>
 </body>
 </html>
